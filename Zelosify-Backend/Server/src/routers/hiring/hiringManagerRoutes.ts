@@ -1,31 +1,17 @@
-import { Router, type RequestHandler } from "express";
+import { Router } from "express";
 import { authenticateUser } from "../../middlewares/auth/authenticateMiddleware.js";
-import { authorizeRole } from "../../middlewares/auth/authorizeMiddleware.js";
-import { fetchData } from "../../controllers/controllers.js";
+import { requireRole } from "../../middlewares/auth/roleMiddleware.js";
+import { getOpenings, getProfiles, shortlistProfile, rejectProfile } from "../../controllers/hiringManagerController.js";
 
 const router = Router();
 
-/**
- * =============================================================================
- * HIRING MANAGER ROUTES - VACANCY MANAGEMENT
- * =============================================================================
- */
+// Apply auth and RBAC middleware to all hiring manager routes
+router.use(authenticateUser);
+router.use(requireRole(["HIRING_MANAGER"]));
 
-/**
- * GET /api/v1/hiring-manager
- * @requires HIRING_MANAGER role
- */
-router.get(
-  "/",
-  authenticateUser as RequestHandler,
-  authorizeRole("HIRING_MANAGER") as RequestHandler,
-  (async (req, res, next) => {
-    try {
-      await fetchData(req as any, res);
-    } catch (error) {
-      next(error);
-    }
-  }) as RequestHandler
-);
+router.get("/openings", getOpenings);
+router.get("/openings/:id/profiles", getProfiles);
+router.post("/profiles/:id/shortlist", shortlistProfile);
+router.post("/profiles/:id/reject", rejectProfile);
 
 export default router;
