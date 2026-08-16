@@ -52,27 +52,27 @@
 
 /* dark theme */
 .dark {
-  --background: #111827; /* slate-900 */
-  --foreground: #f8fafc; /* slate-100 */
-  --primary: #cbd5e1; /* slate-300 */
-  --secondary: #9ca3af; /* gray-400 */
-  --tertiary: #000000; /* plain-black */
-  --border: #374151; /* gray-700 */
-  --ring: #2563eb; /* blue-600 */
-  --focus: #2563eb; /* blue-600 */
+  --background: #000000; /* pure black */
+  --foreground: #ffffff; /* pure white */
+  --primary: #ffffff; /* white */
+  --secondary: #a1a1aa; /* zinc-400 */
+  --tertiary: #0a0a0a; /* dark zinc */
+  --border: #27272a; /* zinc-800 */
+  --ring: #d4d4d8; /* zinc-300 */
+  --focus: #ffffff; /* white */
   --chart-line: #fff; /* plain-white */
-  --table-header: #171f2b; /* gray-850 */
-  --scroll-bar: #4b5563; /* gray-600 */
-  --card: 222.2 84% 4.9%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222.2 84% 4.9%;
-  --popover-foreground: 210 40% 98%;
-  --primary-foreground: 222.2 47.4% 11.2%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: #cbd5e1; /* slate-300 */
-  --accent: #1f2937; /* gray-800 */
-  --accent-foreground: 210 40% 98%;
+  --table-header: #0a0a0a; /* dark zinc */
+  --scroll-bar: #3f3f46; /* zinc-700 */
+  --card: 0 0% 4%; /* very dark gray #0a0a0a */
+  --card-foreground: 0 0% 100%;
+  --popover: 0 0% 4%;
+  --popover-foreground: 0 0% 100%;
+  --primary-foreground: 240 5.9% 10%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: #a1a1aa; /* zinc-400 */
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 100%;
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: #f87171;
   --input: 217.2 32.6% 17.5%;

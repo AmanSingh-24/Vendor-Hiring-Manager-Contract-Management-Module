@@ -73,9 +73,13 @@ export function middleware(request) {
           new URL("/business-user/digital-initiative", request.url)
         );
 
+      case "HIRING_MANAGER":
+        console.log(`Redirecting HIRING_MANAGER to /hiring-manager/openings`);
+        return NextResponse.redirect(new URL("/hiring-manager/openings", request.url));
+
       case "IT_VENDOR":
-        console.log(`Redirecting IT_VENDOR to /vendor/payments`);
-        return NextResponse.redirect(new URL("/vendor/payments", request.url));
+        console.log(`Redirecting IT_VENDOR to /vendor/openings`);
+        return NextResponse.redirect(new URL("/vendor/openings", request.url));
 
       default:
         // Fallback for unknown roles or missing role - redirect to base user page
@@ -99,6 +103,7 @@ export const config = {
     "/user/:path*",
     "/vendor/:path*",
     "/business-user/:path*",
+    "/hiring-manager/:path*",
 
     // Public paths for redirect logic
     "/login",

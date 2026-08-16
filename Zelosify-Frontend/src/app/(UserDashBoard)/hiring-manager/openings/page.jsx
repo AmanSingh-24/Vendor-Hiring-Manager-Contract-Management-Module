@@ -1,0 +1,124 @@
+"use client";
+import React, { useState, useEffect } from "react";
+import { MockApi } from "@/services/mockApi";
+import { Briefcase, MapPin, Calendar, Users } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+export default function HiringManagerOpeningsList() {
+  const [openings, setOpenings] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchOpenings = async () => {
+      try {
+        const data = await MockApi.getOpenings();
+        // Assume HM only sees their own, but since it's mock, we'll show all
+        setOpenings(data);
+      } catch (error) {
+        console.error("Failed to load openings", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchOpenings();
+  }, []);
+
+  return (
+    <div className="flex-1 p-8 overflow-y-auto">
+      <div className="max-w-6xl mx-auto">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white mb-2">My Requisitions</h1>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">View and evaluate candidate submissions from your IT Vendors.</p>
+          </div>
+        </div>
+
+        {/* Bento Box List */}
+        {isLoading ? (
+          <div className="grid gap-4">
+            {[1, 2, 3].map((i) => (
+              <div 
+                key={i}
+                className="p-6 rounded-2xl bg-white dark:bg-[#0a0a0a] border border-zinc-200 dark:border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-pulse"
+              >
+                <div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-9 h-9 bg-zinc-200 dark:bg-zinc-800 rounded-lg"></div>
+                    <div className="w-48 h-6 bg-zinc-200 dark:bg-zinc-800 rounded-md"></div>
+                    <div className="w-16 h-6 bg-zinc-200 dark:bg-zinc-800 rounded-full"></div>
+                  </div>
+                  <div className="flex items-center gap-6 mt-4">
+                    <div className="w-24 h-4 bg-zinc-200 dark:bg-zinc-800 rounded-md"></div>
+                    <div className="w-32 h-4 bg-zinc-200 dark:bg-zinc-800 rounded-md"></div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="text-right hidden md:block space-y-2">
+                    <div className="w-32 h-4 bg-zinc-200 dark:bg-zinc-800 rounded-md ml-auto"></div>
+                    <div className="w-24 h-3 bg-zinc-200 dark:bg-zinc-800 rounded-md ml-auto"></div>
+                  </div>
+                  <div className="w-9 h-9 rounded-full bg-zinc-200 dark:bg-zinc-800"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {openings.map((opening) => (
+              <div 
+                key={opening.id} 
+                onClick={() => router.push(`/hiring-manager/openings/${opening.id}/submissions`)}
+                className="group p-6 rounded-2xl bg-white dark:bg-[#0a0a0a] border border-zinc-200 dark:border-white/5 hover:border-zinc-300 dark:hover:border-white/15 shadow-sm dark:shadow-none transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4 relative overflow-hidden"
+              >
+                {/* Left Info */}
+                <div className="relative z-10">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-zinc-100 dark:bg-[#1a1a1a] rounded-lg">
+                      <Briefcase className="w-5 h-5 text-zinc-600 dark:text-zinc-300" />
+                    </div>
+                    <h2 className="text-xl font-semibold text-zinc-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      {opening.title}
+                    </h2>
+                    <span className="px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-medium border border-emerald-200 dark:border-emerald-500/20">
+                      {opening.status}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center gap-6 mt-4">
+                    <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+                      <MapPin className="w-4 h-4" />
+                      {opening.location}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+                      <Calendar className="w-4 h-4" />
+                      Posted: {opening.postedDate}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Action */}
+                <div className="relative z-10 flex items-center gap-4">
+                  <div className="text-right hidden md:block">
+                    <p className="text-sm text-zinc-900 dark:text-white font-medium flex items-center gap-2 justify-end">
+                      <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      View Submissions
+                    </p>
+                    <p className="text-xs text-zinc-500">AI Analysis Ready</p>
+                  </div>
+                </div>
+                
+                {/* Background gradient effect on hover */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-blue-50/50 dark:to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+              </div>
+            ))}
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}

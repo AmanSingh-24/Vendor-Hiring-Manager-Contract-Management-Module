@@ -50,7 +50,7 @@ export default function UserDashboardlayout({ children }) {
       </div>
 
       {/* main content */}
-      <div className="flex flex-col min-h-screen bg-background">
+      <div className="flex flex-col min-h-screen bg-[#fafafa] dark:bg-[#000000] text-zinc-900 dark:text-white transition-colors duration-200">
         <SignOutConfirmation
           isOpen={showSignoutConfirmation}
           onCancel={handleCloseSignoutConfirmation}

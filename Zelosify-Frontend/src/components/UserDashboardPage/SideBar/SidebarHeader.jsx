@@ -6,25 +6,9 @@ import Link from "next/link";
 const SidebarHeader = memo(({ isOpen, toggleSidebar }) => (
   <div className="h-16 border-b border-gray-200 dark:border-gray-700 flex gap-7 items-center justify-between px-5">
     {isOpen && (
-      <Link
-        href={"/login"}
-        className="text-lg font-bold text-gray-900 dark:text-gray-100 overflow-hidden whitespace-nowrap"
-      >
-        <img
-          src={"/assets/logos/zelosify_Dark.png"}
-          alt="Zelosify Light Logo"
-          width={120}
-          height={40}
-          className="object-contain block dark:hidden"
-        />
-        <img
-          src={"/assets/logos/main-logo.png"}
-          alt="Zelosify Dark Logo"
-          width={120}
-          height={40}
-          className="object-contain hidden dark:block"
-        />
-      </Link>
+      <span className="text-sm font-bold text-zinc-500 tracking-widest">
+        Dashboard
+      </span>
     )}
     <button
       onClick={toggleSidebar}

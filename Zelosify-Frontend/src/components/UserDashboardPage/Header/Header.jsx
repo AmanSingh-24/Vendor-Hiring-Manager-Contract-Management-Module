@@ -56,7 +56,14 @@ const Header = memo(({ isSidebarOpen }) => {
         isSidebarOpen ? "pl-[12rem]" : "pl-[5rem]"
       } h-16 flex items-center justify-between sticky top-0 z-40 bg-background border-b border-border`}
     >
-      <div className="flex items-center justify-end px-6 w-full">
+      <div className="flex items-center justify-between px-6 w-full">
+        
+        {/* Left Side: Custom Logo */}
+        <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.href = "/"}>
+          <img src="/assets/logos/zelosify_Dark.png" alt="Zelosify Light Logo" className="h-6 w-auto block dark:hidden" />
+          <img src="/assets/logos/main-logo.png" alt="Zelosify Dark Logo" className="h-6 w-auto hidden dark:block" />
+        </div>
+
         {/* <div className="flex items-center gap-4 flex-1">
           <div className="hidden md:flex items-center max-w-md flex-1">
             <div className="relative w-full">
