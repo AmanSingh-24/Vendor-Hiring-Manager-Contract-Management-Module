@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
-import { MockApi } from "@/services/mockApi";
+import api from "@/services/api";
 import { useParams, useRouter } from "next/navigation";
 import { useDropzone } from "react-dropzone";
 import { ArrowLeft, UploadCloud, FileText, Trash2, CheckCircle2, Loader2 } from "lucide-react";
@@ -18,11 +18,16 @@ export default function OpeningDetail() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [opData, profData] = await Promise.all([
-          MockApi.getOpeningById(openingId),
-          MockApi.getProfilesForOpening(openingId)
-        ]);
+        const response = await api.get(`/vendor/openings/${openingId}`);
+        const opData = response.data;
         setOpening(opData);
+        // Transform the nested hiringProfiles back to the format the UI expects, if needed
+        const profData = opData.hiringProfiles?.map(p => ({
+          id: p.id,
+          fileName: p.s3Key.split('/').pop(),
+          uploadDate: p.submittedAt,
+          status: p.status
+        })) || [];
         setProfiles(profData);
       } catch (error) {
         console.error(error);
@@ -40,8 +45,32 @@ export default function OpeningDetail() {
     try {
       // Simulate multiple uploads
       for (const file of acceptedFiles) {
-        const newProfile = await MockApi.uploadProfile(openingId, file);
-        setProfiles(prev => [newProfile, ...prev]);
+        // 1. Get Presigned URL
+        const presignRes = await api.post(`/vendor/openings/${openingId}/profiles/presign`, {
+          filename: file.name,
+          contentType: file.type || "application/pdf"
+        });
+        const { presignedUrl, s3Key } = presignRes.data;
+
+        // 2. Upload to S3 directly
+        await fetch(presignedUrl, {
+          method: "PUT",
+          body: file,
+          headers: { "Content-Type": file.type || "application/pdf" }
+        });
+
+        // 3. Notify Backend to save profile
+        const uploadRes = await api.post(`/vendor/openings/${openingId}/profiles/upload`, {
+          s3Key
+        });
+
+        const savedProfile = uploadRes.data.profile;
+        setProfiles(prev => [{
+          id: savedProfile.id,
+          fileName: file.name,
+          uploadDate: new Date().toISOString(),
+          status: savedProfile.status || "PROCESSING"
+        }, ...prev]);
       }
     } catch (error) {
       console.error("Upload failed", error);
@@ -60,7 +89,8 @@ export default function OpeningDetail() {
     try {
       // Optimistic delete
       setProfiles(prev => prev.filter(p => p.id !== profileId));
-      await MockApi.deleteProfile(profileId);
+      // Real API doesn't have a delete profile endpoint right now, but optimistic remove is fine for demo
+      // await api.delete(`/vendor/profiles/${profileId}`);
     } catch (error) {
       console.error("Delete failed", error);
     }

@@ -3,6 +3,7 @@ export {
   register,
   verifyLogin,
   verifyTOTP,
+  completeRegistration,
 } from "./auth/local/localAuthController.js";
 
 // ===== Unified AUTH Logout =====

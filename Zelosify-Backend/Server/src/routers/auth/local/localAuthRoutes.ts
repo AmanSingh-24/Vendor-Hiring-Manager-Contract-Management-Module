@@ -13,6 +13,7 @@ import {
   register,
   verifyLogin,
   verifyTOTP,
+  completeRegistration,
 } from "../../../controllers/controllers.js";
 import { AuthenticatedRequest } from "../../../types/common.js";
 
@@ -69,5 +70,11 @@ router.post("/verify-totp", wrapHandler(verifyTOTP));
  * Requires authentication middleware to access user session
  */
 router.post("/logout", authenticateUser, wrapProtectedHandler(logout));
+
+/**
+ * POST /complete-registration - Complete registration flow
+ * Clears the registration_token cookie
+ */
+router.post("/complete-registration", wrapHandler(completeRegistration));
 
 export default router;

@@ -4,8 +4,8 @@ import { logger } from "../utils/logger/index.js";
 
 export const getOpenings = async (req: Request, res: Response): Promise<void> => {
   try {
-    const result = await getHMOpeningsService(req.user.tenantId, req.user.id);
-    res.json(result);
+    const result = await getHMOpeningsService(req.user.tenant.tenantId, req.user.id);
+    res.json({ data: result });
   } catch (error: any) {
     logger.error("Error fetching HM openings", { error: error.message });
     res.status(500).json({ message: "Internal server error" });
@@ -14,9 +14,9 @@ export const getOpenings = async (req: Request, res: Response): Promise<void> =>
 
 export const getProfiles = async (req: Request, res: Response): Promise<void> => {
   try {
-    const result = await getHMProfilesService(req.user.tenantId, req.user.id, req.params.id);
+    const result = await getHMProfilesService(req.user.tenant.tenantId, req.user.id, req.params.id);
     if (!result) { res.status(403).json({ message: "Access Denied: Not your opening" }); return; }
-    res.json(result);
+    res.json({ data: result });
   } catch (error: any) {
     logger.error("Error fetching HM profiles", { error: error.message });
     res.status(500).json({ message: "Internal server error" });

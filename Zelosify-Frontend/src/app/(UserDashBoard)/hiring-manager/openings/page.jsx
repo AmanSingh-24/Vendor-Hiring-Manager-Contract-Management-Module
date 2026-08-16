@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { MockApi } from "@/services/mockApi";
+import api from "@/services/api";
 import { Briefcase, MapPin, Calendar, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -12,9 +12,8 @@ export default function HiringManagerOpeningsList() {
   useEffect(() => {
     const fetchOpenings = async () => {
       try {
-        const data = await MockApi.getOpenings();
-        // Assume HM only sees their own, but since it's mock, we'll show all
-        setOpenings(data);
+        const response = await api.get("/hiring-manager/openings");
+        setOpenings(response.data.data || []);
       } catch (error) {
         console.error("Failed to load openings", error);
       } finally {

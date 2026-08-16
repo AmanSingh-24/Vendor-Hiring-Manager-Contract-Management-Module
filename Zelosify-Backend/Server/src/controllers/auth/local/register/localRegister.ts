@@ -194,6 +194,15 @@ export const register = asyncHandler(
         });
       }
 
+      // Set registration token cookie so middleware redirects to /setup-totp
+      res.cookie("registration_token", "pending", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 3600 * 1000, // 1 hour
+        path: "/",
+      });
+
       // Generate QR code for TOTP
       const otpAuthUrl = authenticator.keyuri(email, REALM_NAME, totpSecret);
       const qrCode = await QRCode.toDataURL(otpAuthUrl);
@@ -226,3 +235,12 @@ export const register = asyncHandler(
     }
   }
 );
+
+/**
+ * Clear the registration_token cookie once TOTP setup is complete
+ */
+export const completeRegistration = (req: Request, res: Response) => {
+  res.clearCookie("registration_token", { path: "/" });
+  res.status(200).json({ message: "Registration setup completed." });
+};
+

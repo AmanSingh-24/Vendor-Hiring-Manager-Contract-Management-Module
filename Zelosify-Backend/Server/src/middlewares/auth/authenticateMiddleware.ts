@@ -36,12 +36,14 @@ export const authenticateUser = async (
       req.headers.authorization?.split(" ")[1] || req.cookies.access_token;
 
     if (!token) {
+      console.log("❌ authenticateUser: No token found in headers or cookies");
       res.status(401).json({ message: "Authentication required" });
       return;
     }
 
     const decoded = jwt.decode(token, { complete: true });
     if (!decoded || !decoded.payload) {
+      console.log("❌ authenticateUser: Invalid token format", token.substring(0, 20) + "...");
       res.status(401).json({ message: "Invalid token format" });
       return;
     }
@@ -100,9 +102,9 @@ export const authenticateUser = async (
 
       req.user = user;
       next();
-    } catch (error) {
-      console.error("Token verification failed:", error);
-      res.status(401).json({ message: "Invalid or expired token" });
+    } catch (error: any) {
+      console.error("❌ Token verification failed:", error.message || error);
+      res.status(401).json({ message: "Invalid or expired token", details: error.message });
       return;
     }
   } catch (error) {

@@ -1,4 +1,4 @@
-import prisma from "../../config/prisma/prisma.js";
+import prisma from "../config/prisma/prisma.js";
 import { generatePresignedUrl } from "../utils/aws/s3Uploader.js";
 import { processResumeWithAgent } from "./ai/agent.js";
 import { logger } from "../utils/logger/index.js";

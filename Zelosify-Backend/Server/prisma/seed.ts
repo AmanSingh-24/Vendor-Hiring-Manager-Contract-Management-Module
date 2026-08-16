@@ -5,30 +5,51 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Starting seed...');
 
-  // 1. Create the tenant "Bruce Wayne Corp"
-  const tenant = await prisma.tenants.create({
-    data: {
-      companyName: 'Bruce Wayne Corp',
-    },
+  // Find an existing Hiring Manager
+  let hiringManager = await prisma.user.findFirst({
+    where: { role: Role.HIRING_MANAGER },
   });
 
-  console.log(`Created Tenant: ${tenant.companyName} with ID: ${tenant.tenantId}`);
+  let tenant;
 
-  // 2. Create a Hiring Manager user for this tenant to own the openings
-  const hiringManager = await prisma.user.create({
-    data: {
-      email: 'hiringmanager@brucewayne.corp',
-      username: 'bruce_hm',
-      firstName: 'Bruce',
-      lastName: 'Wayne',
-      role: Role.HIRING_MANAGER,
-      tenantId: tenant.tenantId,
-      provider: AuthProvider.KEYCLOAK,
-      profileComplete: true,
-    },
-  });
+  if (hiringManager) {
+    console.log(`Found existing Hiring Manager: ${hiringManager.email} with ID: ${hiringManager.id}`);
+    tenant = await prisma.tenants.findUnique({
+      where: { tenantId: hiringManager.tenantId },
+    });
+    
+    if (!tenant) {
+      tenant = await prisma.tenants.create({
+        data: {
+          tenantId: hiringManager.tenantId,
+          companyName: 'Bruce Wayne Corp (Recovered)',
+        },
+      });
+    }
+  } else {
+    // 1. Create the tenant "Bruce Wayne Corp"
+    tenant = await prisma.tenants.create({
+      data: {
+        companyName: 'Bruce Wayne Corp',
+      },
+    });
+    console.log(`Created Tenant: ${tenant.companyName} with ID: ${tenant.tenantId}`);
 
-  console.log(`Created Hiring Manager: ${hiringManager.email} with ID: ${hiringManager.id}`);
+    // 2. Create a Hiring Manager user for this tenant to own the openings
+    hiringManager = await prisma.user.create({
+      data: {
+        email: 'hiringmanager@brucewayne.corp',
+        username: 'bruce_hm',
+        firstName: 'Bruce',
+        lastName: 'Wayne',
+        role: Role.HIRING_MANAGER,
+        tenantId: tenant.tenantId,
+        provider: AuthProvider.KEYCLOAK,
+        profileComplete: true,
+      },
+    });
+    console.log(`Created Hiring Manager: ${hiringManager.email} with ID: ${hiringManager.id}`);
+  }
 
   // 3. Create at least 12 openings with varying parameters
   const openingsData = [

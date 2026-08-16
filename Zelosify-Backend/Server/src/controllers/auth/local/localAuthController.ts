@@ -1,4 +1,4 @@
-import { register as registerImpl } from "./register/localRegister.js";
+import { register as registerImpl, completeRegistration as completeRegistrationImpl } from "./register/localRegister.js";
 import { verifyLogin as verifyLoginImpl } from "./login/localLogin.js";
 import { verifyTOTP as verifyTOTPImpl } from "./login/verifyTOTP.js";
 import { Request, Response, NextFunction } from "express";
@@ -53,6 +53,23 @@ export const verifyLogin = async (req: Request, res: Response) => {
 export const verifyTOTP = async (req: Request, res: Response) => {
   try {
     await verifyTOTPImpl(req, res);
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      error: "Internal server error",
+      details: (error as Error).message,
+    });
+  }
+};
+
+/**
+ * Handles completing registration.
+ * @param req Express request
+ * @param res Express response
+ */
+export const completeRegistration = async (req: Request, res: Response) => {
+  try {
+    completeRegistrationImpl(req, res);
   } catch (error) {
     res.status(500).json({
       status: "error",

@@ -55,7 +55,7 @@ export default function LandingPage() {
           )}
 
           <Link 
-            href="/login" 
+            href="/register" 
             className="px-4 py-2 bg-zinc-900 dark:bg-white text-white dark:text-black text-sm font-medium rounded-xl hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
           >
             Get Started
@@ -64,7 +64,7 @@ export default function LandingPage() {
             href="/login" 
             className="px-4 py-2 bg-zinc-50 dark:bg-[#111111] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white text-sm font-medium rounded-xl hover:bg-zinc-100 dark:hover:bg-[#1a1a1a] transition-colors hidden md:block"
           >
-            Book demo
+            Login
           </Link>
         </div>
       </header>
@@ -93,7 +93,7 @@ export default function LandingPage() {
         {/* CTA Buttons */}
         <div className="flex items-center gap-4 mb-8">
           <Link 
-            href="/login"
+            href="/register"
             className="px-6 py-3 bg-zinc-900 dark:bg-white text-white dark:text-black text-sm font-medium rounded-xl hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
           >
             Get Started
@@ -102,7 +102,7 @@ export default function LandingPage() {
             href="/login"
             className="px-6 py-3 bg-zinc-50 dark:bg-[#111111] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white text-sm font-medium rounded-xl hover:bg-zinc-100 dark:hover:bg-[#1a1a1a] transition-colors"
           >
-            Book a demo
+            Login
           </Link>
         </div>
 

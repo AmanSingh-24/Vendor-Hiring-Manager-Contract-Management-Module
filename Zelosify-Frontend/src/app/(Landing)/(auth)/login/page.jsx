@@ -2,16 +2,23 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Check, ArrowRight, Sun, Moon, Loader2 } from "lucide-react";
-import { useAuth } from "@/contexts/MockAuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
+import { toast } from "sonner";
 
 export default function LoginPage() {
-  const { loginAsVendor, loginAsHiringManager } = useAuth();
+  const { login, verifyTotp } = useAuth();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+
+  // Form states
+  const [step, setStep] = useState(1);
+  const [usernameOrEmail, setUsernameOrEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [totp, setTotp] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -19,17 +26,54 @@ export default function LoginPage() {
 
   const currentTheme = theme === "system" ? resolvedTheme : theme;
 
-  const handleDemoLogin = (role) => {
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+    if (!usernameOrEmail || !password) {
+      toast.error("Please enter both username and password");
+      return;
+    }
+    
     setIsSubmitting(true);
-    setTimeout(() => {
-      if (role === "vendor") {
-        loginAsVendor();
+    try {
+      const res = await login(usernameOrEmail, password);
+      toast.success(res.message || "Please enter your TOTP code");
+      setStep(2);
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Invalid credentials");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleTotpSubmit = async (e) => {
+    e.preventDefault();
+    if (!totp) {
+      toast.error("Please enter your TOTP code");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const userData = await verifyTotp(totp);
+      toast.success("Login successful!");
+      
+      // Redirect based on role
+      if (userData.role === "IT_VENDOR") {
         router.push("/vendor/openings");
-      } else {
-        loginAsHiringManager();
+      } else if (userData.role === "HIRING_MANAGER") {
         router.push("/hiring-manager/openings");
+      } else if (userData.role === "BUSINESS_USER") {
+        router.push("/business-user/digital-initiative");
+      } else {
+        router.push("/user");
       }
-    }, 800);
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Invalid TOTP code");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -73,9 +117,6 @@ export default function LoginPage() {
           <button className="px-4 py-2 bg-zinc-900 dark:bg-white text-white dark:text-black text-sm font-medium rounded-md hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors">
             Get Started
           </button>
-          <button className="px-4 py-2 bg-zinc-50 dark:bg-[#111111] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white text-sm font-medium rounded-md hover:bg-zinc-100 dark:hover:bg-[#1a1a1a] transition-colors hidden md:block">
-            Book demo
-          </button>
         </div>
       </header>
 
@@ -86,74 +127,103 @@ export default function LoginPage() {
         <div className="flex-1 p-8 lg:p-12 xl:p-16 flex flex-col justify-center">
           <div className="max-w-xl">
             <h1 className="text-[44px] md:text-[52px] font-bold tracking-tight leading-[1.05] mb-6 text-zinc-900 dark:text-white">
-              Let's understand how your team<br/>manages vendors today.
+              Securely access your vendor workspace.
             </h1>
             <p className="text-[17px] text-zinc-600 dark:text-zinc-400 mb-12 leading-relaxed">
-              Tell us about your vendor operations, contracts, and current challenges. We'll review your setup and recommend the best way to use Zelosify.
+              Log in to manage operations, review contracts, and submit profiles. Secured by Keycloak and Multi-Factor Authentication.
             </p>
 
             {/* Feature checks */}
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-transparent shadow-sm dark:shadow-none">
                 <Check className="w-4 h-4 text-zinc-900 dark:text-white shrink-0" />
-                <span className="text-sm text-zinc-600 dark:text-zinc-300 leading-tight">No cost or<br/>commitment</span>
+                <span className="text-sm text-zinc-600 dark:text-zinc-300 leading-tight">Enterprise-grade<br/>Security</span>
               </div>
               <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-transparent shadow-sm dark:shadow-none">
                 <Check className="w-4 h-4 text-zinc-900 dark:text-white shrink-0" />
-                <span className="text-sm text-zinc-600 dark:text-zinc-300 leading-tight">Your information<br/>stays private</span>
-              </div>
-              <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-transparent shadow-sm dark:shadow-none">
-                <Check className="w-4 h-4 text-zinc-900 dark:text-white shrink-0" />
-                <span className="text-sm text-zinc-600 dark:text-zinc-300 leading-tight">A practical next step,<br/>not a generic pitch</span>
+                <span className="text-sm text-zinc-600 dark:text-zinc-300 leading-tight">MFA enforced<br/>for all roles</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Side - Form (Mock Login) */}
+        {/* Right Side - Form (Real Login) */}
         <div className="flex-1 p-8 lg:p-12 xl:p-16 flex items-center justify-center">
           <div className="w-full max-w-md bg-zinc-50 dark:bg-[#111111] border border-zinc-200 dark:border-white/5 shadow-sm dark:shadow-none rounded-[24px] p-8">
             
-            <h2 className="text-2xl font-bold tracking-tight mb-2 text-zinc-900 dark:text-white">Tell us about your vendor setup</h2>
+            <h2 className="text-2xl font-bold tracking-tight mb-2 text-zinc-900 dark:text-white">
+              {step === 1 ? "Welcome back" : "Two-Factor Authentication"}
+            </h2>
             <p className="text-[13px] text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed">
-              Share a few details so we can guide the conversation toward the right starting point.
-              <br/><br/>
-              <span className="italic text-yellow-600 dark:text-yellow-500/80">Developer Note: Choose a persona below to bypass Keycloak and view the dashboards.</span>
+              {step === 1 
+                ? "Enter your credentials to access your account." 
+                : "Enter the 6-digit code from your authenticator app."}
             </p>
 
-            <div className="space-y-6">
-              {/* IT Vendor Mock Login */}
-              <div className="space-y-2">
+            {step === 1 ? (
+              <form onSubmit={handleLoginSubmit} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Username or Email</label>
+                  <input
+                    type="text"
+                    value={usernameOrEmail}
+                    onChange={(e) => setUsernameOrEmail(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-white dark:bg-[#1a1a1a] border border-zinc-300 dark:border-white/10 rounded-lg text-sm text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white/20 transition-all"
+                    placeholder="Enter your username"
+                    disabled={isSubmitting}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Password</label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-white dark:bg-[#1a1a1a] border border-zinc-300 dark:border-white/10 rounded-lg text-sm text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white/20 transition-all"
+                    placeholder="••••••••"
+                    disabled={isSubmitting}
+                  />
+                </div>
                 <button 
-                  onClick={() => handleDemoLogin("vendor")}
+                  type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3.5 bg-zinc-100 dark:bg-[#1a1a1a] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white text-sm font-medium rounded-lg hover:bg-zinc-200 dark:hover:bg-[#222] shadow-sm dark:shadow-none transition-colors disabled:opacity-50 text-left px-5 flex justify-between items-center"
+                  className="w-full mt-6 py-3 bg-zinc-900 dark:bg-white text-white dark:text-black text-sm font-medium rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 shadow-sm transition-colors disabled:opacity-50 flex justify-center items-center gap-2"
                 >
-                  <span>
-                    {isSubmitting ? (
-                      <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Authenticating...</span>
-                    ) : "1. Log in as IT Vendor"}
-                  </span>
-                  <ArrowRight className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
+                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Continue"}
+                  {!isSubmitting && <ArrowRight className="w-4 h-4" />}
                 </button>
-              </div>
-
-              {/* Hiring Manager Mock Login */}
-              <div className="space-y-2">
+              </form>
+            ) : (
+              <form onSubmit={handleTotpSubmit} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Authenticator Code</label>
+                  <input
+                    type="text"
+                    value={totp}
+                    onChange={(e) => setTotp(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-white dark:bg-[#1a1a1a] border border-zinc-300 dark:border-white/10 rounded-lg text-sm text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white/20 transition-all text-center tracking-widest text-lg font-mono"
+                    placeholder="000000"
+                    maxLength={6}
+                    disabled={isSubmitting}
+                  />
+                </div>
                 <button 
-                  onClick={() => handleDemoLogin("hm")}
+                  type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3.5 bg-zinc-900 dark:bg-white text-white dark:text-black text-sm font-medium rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 shadow-sm dark:shadow-none transition-colors disabled:opacity-50 text-left px-5 flex justify-between items-center"
+                  className="w-full mt-6 py-3 bg-zinc-900 dark:bg-white text-white dark:text-black text-sm font-medium rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 shadow-sm transition-colors disabled:opacity-50 flex justify-center items-center gap-2"
                 >
-                  <span>
-                    {isSubmitting ? (
-                      <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Authenticating...</span>
-                    ) : "2. Log in as Hiring Manager"}
-                  </span>
-                  <ArrowRight className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
+                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify & Login"}
                 </button>
-              </div>
-            </div>
+                <button 
+                  type="button"
+                  onClick={() => setStep(1)}
+                  disabled={isSubmitting}
+                  className="w-full py-2 text-[13px] text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 transition-colors"
+                >
+                  Back to credentials
+                </button>
+              </form>
+            )}
             
           </div>
         </div>

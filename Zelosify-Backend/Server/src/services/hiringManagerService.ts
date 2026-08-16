@@ -1,4 +1,4 @@
-import prisma from "../../config/prisma/prisma.js";
+import prisma from "../config/prisma/prisma.js";
 
 export const getHMOpeningsService = async (tenantId: string, hiringManagerId: string) => {
   return await prisma.opening.findMany({

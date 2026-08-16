@@ -1,6 +1,6 @@
 import "@/styles/globals.css";
 import AllProvider from "@/redux/core/AllProvider";
-import { MockAuthProvider } from "@/contexts/MockAuthContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 // Metadata (App Router style)
 export const metadata = {
@@ -15,9 +15,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`antialiased`}>
-        <MockAuthProvider>
+        <AuthProvider>
           <AllProvider>{children}</AllProvider>
-        </MockAuthProvider>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { MockApi } from "@/services/mockApi";
+import api from "@/services/api";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Sparkles, FileText, CheckCircle2, ChevronRight } from "lucide-react";
 
@@ -24,15 +24,26 @@ export default function SubmissionsEvaluationTable() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [opData, profData] = await Promise.all([
-          MockApi.getOpeningById(openingId),
-          MockApi.getProfilesForOpening(openingId) // Now returns 500 profiles
-        ]);
+        // We don't have a getOpeningById endpoint for HM yet, so let's just use the profiles endpoint
+        const profResponse = await api.get(`/hiring-manager/openings/${openingId}/profiles`);
+        const profData = profResponse.data.data || [];
         
+        // Transform the nested hiringProfiles back to the format the UI expects
+        const mappedProfiles = profData.map(p => ({
+          id: p.id,
+          fileName: p.s3Key?.split('/').pop() || "Unknown",
+          vendorName: p.uploadedByUser?.firstName ? `${p.uploadedByUser.firstName} ${p.uploadedByUser.lastName}` : "Vendor",
+          aiScore: p.recommendationScore || 0,
+          aiBadge: p.recommended ? "Recommended" : "Needs Review",
+          aiBadgeColor: p.recommended ? "emerald" : "yellow",
+          aiSummary: p.recommendationReason || "No summary yet",
+          status: p.status
+        }));
+
         // Sort by AI score descending
-        const sorted = profData.sort((a, b) => b.aiScore - a.aiScore);
+        const sorted = mappedProfiles.sort((a, b) => b.aiScore - a.aiScore);
         
-        setOpening(opData);
+        setOpening({ title: "Opening Details" }); // Dummy title since we don't have getOpeningById for HM
         setProfiles(sorted);
       } catch (error) {
         console.error(error);
