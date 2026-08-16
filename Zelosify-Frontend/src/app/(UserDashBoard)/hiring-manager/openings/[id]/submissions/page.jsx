@@ -24,26 +24,24 @@ export default function SubmissionsEvaluationTable() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // We don't have a getOpeningById endpoint for HM yet, so let's just use the profiles endpoint
         const profResponse = await api.get(`/hiring-manager/openings/${openingId}/profiles`);
-        const profData = profResponse.data.data || [];
+        const result = profResponse.data.data || {};
+        const profData = result.profiles || [];
         
-        // Transform the nested hiringProfiles back to the format the UI expects
         const mappedProfiles = profData.map(p => ({
           id: p.id,
           fileName: p.s3Key?.split('/').pop() || "Unknown",
           vendorName: p.uploadedByUser?.firstName ? `${p.uploadedByUser.firstName} ${p.uploadedByUser.lastName}` : "Vendor",
-          aiScore: p.recommendationScore || 0,
-          aiBadge: p.recommended ? "Recommended" : "Needs Review",
-          aiBadgeColor: p.recommended ? "emerald" : "yellow",
-          aiSummary: p.recommendationReason || "No summary yet",
+          aiScore: p.aiEvaluation ? Math.round(p.aiEvaluation.score * 100) : 0,
+          aiBadge: p.aiEvaluation ? p.aiEvaluation.badge : "Pending",
+          aiBadgeColor: p.aiEvaluation ? (p.aiEvaluation.badge === "Recommended" ? "emerald" : p.aiEvaluation.badge === "Borderline" ? "yellow" : "red") : "zinc",
+          aiSummary: p.aiEvaluation ? p.aiEvaluation.explanation : "AI evaluation pending...",
           status: p.status
         }));
 
-        // Sort by AI score descending
         const sorted = mappedProfiles.sort((a, b) => b.aiScore - a.aiScore);
         
-        setOpening({ title: "Opening Details" }); // Dummy title since we don't have getOpeningById for HM
+        setOpening({ title: result.opening?.title || "Opening Details" });
         setProfiles(sorted);
       } catch (error) {
         console.error(error);
@@ -57,6 +55,19 @@ export default function SubmissionsEvaluationTable() {
   // Handle scroll to track position
   const handleScroll = (e) => {
     setScrollTop(e.currentTarget.scrollTop);
+  };
+
+  const handleAction = async (profileId, action) => {
+    try {
+      await api.post(`/hiring-manager/profiles/${profileId}/${action}`);
+      // Optimistically update the UI
+      setProfiles(prev => prev.map(p => 
+        p.id === profileId ? { ...p, status: action === 'shortlist' ? 'SHORTLISTED' : 'REJECTED' } : p
+      ));
+    } catch (error) {
+      console.error(`Failed to ${action} profile`, error);
+      alert(`Failed to ${action} profile.`);
+    }
   };
 
   // Calculate virtualization bounds
@@ -225,7 +236,8 @@ export default function SubmissionsEvaluationTable() {
                       ${profile.aiBadgeColor === 'emerald' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' : 
                         profile.aiBadgeColor === 'blue' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20' : 
                         profile.aiBadgeColor === 'yellow' ? 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20' : 
-                        'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20'}`}
+                        profile.aiBadgeColor === 'red' ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20' : 
+                        'bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-white/10 dark:text-zinc-300 dark:border-white/20'}`}
                     >
                       {profile.aiScore > 70 && <CheckCircle2 className="w-3 h-3" />}
                       {profile.aiBadge}
@@ -238,10 +250,29 @@ export default function SubmissionsEvaluationTable() {
                   </div>
 
                   {/* Action */}
-                  <div className="col-span-1 flex justify-end pr-2">
-                    <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-white/5 flex items-center justify-center group-hover:bg-zinc-200 dark:group-hover:bg-white/10 transition-colors">
-                      <ChevronRight className="w-4 h-4 text-zinc-600 dark:text-white" />
-                    </div>
+                  <div className="col-span-1 flex justify-end gap-2 pr-2">
+                    {profile.status === 'SUBMITTED' ? (
+                      <>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleAction(profile.id, 'shortlist'); }}
+                          className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-colors border border-emerald-200 dark:border-emerald-500/20"
+                          title="Shortlist"
+                        >
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                        </button>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleAction(profile.id, 'reject'); }}
+                          className="w-8 h-8 rounded-full bg-red-50 dark:bg-red-500/10 flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors border border-red-200 dark:border-red-500/20"
+                          title="Reject"
+                        >
+                          <span className="text-red-600 dark:text-red-400 font-bold text-sm leading-none">×</span>
+                        </button>
+                      </>
+                    ) : (
+                      <span className={`text-xs font-medium px-2 py-1 rounded-full ${profile.status === 'SHORTLISTED' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300' : 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300'}`}>
+                        {profile.status}
+                      </span>
+                    )}
                   </div>
 
                 </div>

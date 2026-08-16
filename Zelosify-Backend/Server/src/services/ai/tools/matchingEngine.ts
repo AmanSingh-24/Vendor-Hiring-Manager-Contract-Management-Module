@@ -14,52 +14,123 @@ export interface MatchingEngineOutput {
   locationMatchScore: number;
   finalScore: number;
   decision: "Recommended" | "Borderline" | "Not Recommended";
+  breakdown: {
+    matchedSkills: string[];
+    unmatchedSkills: string[];
+  };
+}
+
+/**
+ * Normalizes a skill string for comparison.
+ * Strips whitespace, lowercases, removes dots and common suffixes like ".js".
+ */
+function normalizeSkill(skill: string): string {
+  return skill
+    .toLowerCase()
+    .trim()
+    .replace(/\.js$/i, "")  // "Node.js" → "node", "React.js" → "react"
+    .replace(/\./g, "")     // remaining dots
+    .replace(/-/g, "")      // hyphens
+    .replace(/\s+/g, " ");  // collapse whitespace
+}
+
+/**
+ * Alias map: maps alternate names to a canonical form.
+ * Both keys AND values should be in normalized form (lowercase, no dots).
+ */
+const SKILL_ALIASES: Record<string, string> = {
+  "reactjs": "react",
+  "nodejs": "node",
+  "amazon web services": "aws",
+  "typescript": "typescript",
+  "ts": "typescript",
+  "javascript": "javascript",
+  "js": "javascript",
+  "k8s": "kubernetes",
+  "gcp": "google cloud platform",
+  "postgres": "postgresql",
+  "mongo": "mongodb",
+  "nextjs": "next",
+  "expressjs": "express",
+  "vuejs": "vue",
+  "angularjs": "angular",
+};
+
+/**
+ * Resolves a skill to its canonical name using aliases, then normalization.
+ */
+function canonicalize(skill: string): string {
+  const normalized = normalizeSkill(skill);
+  return SKILL_ALIASES[normalized] || normalized;
+}
+
+/**
+ * Checks if a candidate skill matches a required skill using:
+ * 1. Exact canonical match
+ * 2. Substring containment (bidirectional)
+ */
+function skillMatches(candidateSkill: string, requiredSkill: string): boolean {
+  const candCanon = canonicalize(candidateSkill);
+  const reqCanon = canonicalize(requiredSkill);
+
+  // Exact match after canonicalization
+  if (candCanon === reqCanon) return true;
+
+  // Substring containment: "amazon web services" contains "aws" or vice versa
+  if (candCanon.includes(reqCanon) || reqCanon.includes(candCanon)) return true;
+
+  return false;
 }
 
 export const deterministicMatchingEngine = (input: MatchingEngineInput): MatchingEngineOutput => {
-  // 1. Experience Logic
+  // ─── 1. Experience Score ───
   let experienceMatchScore = 0;
   if (input.candidateExp < input.minExp) {
     experienceMatchScore = 0;
   } else if (!input.maxExp || input.candidateExp <= input.maxExp) {
     experienceMatchScore = 1;
   } else {
-    experienceMatchScore = 0.8;
+    experienceMatchScore = 0.8; // Over-qualified
   }
 
-  // 2. Skill Match Logic
+  // ─── 2. Skill Match Score (fuzzy) ───
   let skillMatchScore = 0;
+  const matchedSkills: string[] = [];
+  const unmatchedSkills: string[] = [];
+
   if (input.requiredSkills.length === 0) {
-    skillMatchScore = 1; // If no required skills, assume match
+    skillMatchScore = 1; // No requirements = assume full match
   } else {
-    const candidateSkillsLower = input.candidateSkills.map(s => s.toLowerCase());
-    let overlap = 0;
-    input.requiredSkills.forEach(req => {
-      if (candidateSkillsLower.includes(req.toLowerCase())) {
-        overlap++;
+    for (const reqSkill of input.requiredSkills) {
+      const found = input.candidateSkills.some(candSkill => skillMatches(candSkill, reqSkill));
+      if (found) {
+        matchedSkills.push(reqSkill);
+      } else {
+        unmatchedSkills.push(reqSkill);
       }
-    });
-    skillMatchScore = overlap / input.requiredSkills.length;
+    }
+    skillMatchScore = matchedSkills.length / input.requiredSkills.length;
   }
 
-  // 3. Location Logic
+  // ─── 3. Location Score ───
   let locationMatchScore = 0;
-  const reqLoc = input.requiredLocation.toLowerCase();
-  const candLoc = input.candidateLocation.toLowerCase();
-  
-  if (reqLoc === 'remote') {
-    locationMatchScore = 1;
+  const reqLoc = input.requiredLocation.toLowerCase().trim();
+  const candLoc = input.candidateLocation.toLowerCase().trim();
+
+  if (reqLoc === "remote") {
+    locationMatchScore = 1; // Remote jobs accept anyone
   } else if (reqLoc === candLoc) {
     locationMatchScore = 1;
   } else {
-    locationMatchScore = 0.5; // Onsite mismatch
+    locationMatchScore = 0.5; // Location mismatch
   }
 
-  // 4. Final Score Formula (MANDATORY)
-  // (0.5 * skillMatchScore) + (0.3 * experienceMatchScore) + (0.2 * locationMatchScore)
-  const finalScore = (0.5 * skillMatchScore) + (0.3 * experienceMatchScore) + (0.2 * locationMatchScore);
+  // ─── 4. Final Score ───
+  // Formula: (0.5 * skillMatch) + (0.3 * expMatch) + (0.2 * locationMatch)
+  const rawScore = (0.5 * skillMatchScore) + (0.3 * experienceMatchScore) + (0.2 * locationMatchScore);
+  const finalScore = Math.round(rawScore * 1000) / 1000; // 3 decimal places
 
-  // 5. Decision Thresholds
+  // ─── 5. Decision Thresholds ───
   let decision: "Recommended" | "Borderline" | "Not Recommended";
   if (finalScore >= 0.75) {
     decision = "Recommended";
@@ -74,6 +145,7 @@ export const deterministicMatchingEngine = (input: MatchingEngineInput): Matchin
     experienceMatchScore,
     locationMatchScore,
     finalScore,
-    decision
+    decision,
+    breakdown: { matchedSkills, unmatchedSkills },
   };
 };

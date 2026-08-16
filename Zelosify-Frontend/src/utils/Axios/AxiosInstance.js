@@ -1,5 +1,7 @@
 // src/utils/axiosInstance.js
 import axios from "axios";
+import { toast } from "sonner";
+import { clearAuthData } from "../Auth/authUtils";
 
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
@@ -36,6 +38,19 @@ axiosInstance.interceptors.response.use(
         }]: ${error.config.method.toUpperCase()} ${error.config.url}`,
         error.response.data
       );
+      
+      // Global 401 handler for expired tokens
+      if (error.response.status === 401) {
+        // Prevent redirect loops if already on the login page
+        if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
+          // Clear any local storage/state and cookies so the role vanishes
+          clearAuthData();
+          toast.error("Session Expired, Login Again");
+          setTimeout(() => {
+            window.location.href = "/login";
+          }, 1000);
+        }
+      }
     } else {
       console.error(`API Error: ${error.message}`);
     }

@@ -65,7 +65,7 @@ export const uploadProfileService = async (tenantId: string, openingId: string, 
   processResumeWithAgent(s3Key, {
     minExp: opening.experienceMin,
     maxExp: opening.experienceMax,
-    requiredSkills: [], 
+    requiredSkills: opening.title.includes('Software') ? ['React', 'Node.js', 'AWS', 'TypeScript'] : [], 
     requiredLocation: opening.location || "Remote"
   }).then(async (aiResult) => {
     await prisma.$transaction(async (tx) => {
@@ -79,6 +79,8 @@ export const uploadProfileService = async (tenantId: string, openingId: string, 
           recommendationVersion: aiResult.recommendationVersion,
           recommendationConfidence: aiResult.recommendationConfidence,
           recommendedAt: new Date(),
+          extractedFeatures: aiResult.extractedFeatures as any,
+          totalTokensUsed: aiResult.totalTokensUsed,
         }
       });
     });

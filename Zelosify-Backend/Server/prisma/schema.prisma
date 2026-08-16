@@ -106,6 +106,8 @@ model hiringProfile {
   recommendationVersion   String?
   recommendationConfidence Float?
   recommendedAt           DateTime?
+  extractedFeatures       Json?
+  totalTokensUsed         Int?
   
   isDeleted               Boolean       @default(false)
   

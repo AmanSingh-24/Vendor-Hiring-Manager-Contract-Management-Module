@@ -5,8 +5,8 @@ import { logger } from "../utils/logger/index.js";
 export const getOpenings = async (req: Request, res: Response): Promise<void> => {
   try {
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
-    const result = await getVendorOpeningsService(req.user.tenantId, page, limit);
+    const limit = parseInt(req.query.limit as string) || 50;
+    const result = await getVendorOpeningsService(req.user.tenant.tenantId, page, limit);
     res.json(result);
   } catch (error: any) {
     logger.error("Error fetching vendor openings", { error: error.message });
@@ -16,7 +16,7 @@ export const getOpenings = async (req: Request, res: Response): Promise<void> =>
 
 export const getOpeningDetails = async (req: Request, res: Response): Promise<void> => {
   try {
-    const result = await getVendorOpeningDetailsService(req.user.tenantId, req.params.id, req.user.id);
+    const result = await getVendorOpeningDetailsService(req.user.tenant.tenantId, req.params.id, req.user.id);
     if (!result) { res.status(404).json({ message: "Opening not found" }); return; }
     res.json(result);
   } catch (error: any) {
@@ -30,7 +30,7 @@ export const presignProfile = async (req: Request, res: Response): Promise<void>
     const { filename, contentType } = req.body;
     if (!filename || !contentType) { res.status(400).json({ message: "Filename and contentType required" }); return; }
     
-    const { presignedUrl, key } = await presignProfileService(req.user.tenantId, req.params.id, filename, contentType);
+    const { presignedUrl, key } = await presignProfileService(req.user.tenant.tenantId, req.params.id, filename, contentType);
     res.json({ presignedUrl, s3Key: key });
   } catch (error: any) {
     logger.error("Error generating presigned URL", { error: error.message });
@@ -43,7 +43,7 @@ export const uploadProfile = async (req: Request, res: Response): Promise<void> 
     const { s3Key } = req.body;
     if (!s3Key) { res.status(400).json({ message: "s3Key required" }); return; }
 
-    const profile = await uploadProfileService(req.user.tenantId, req.params.id, req.user.id, s3Key);
+    const profile = await uploadProfileService(req.user.tenant.tenantId, req.params.id, req.user.id, s3Key);
     if (!profile) { res.status(404).json({ message: "Opening not found" }); return; }
 
     res.status(202).json({ message: "Profile submitted, AI evaluation started", profile });
