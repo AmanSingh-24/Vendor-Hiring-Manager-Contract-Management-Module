@@ -105,7 +105,7 @@ Furthermore, implementing AI into recruitment often results in fragile "LLM Wrap
 
 ### AI Recommendation Engine Architecture
 <p align="center">
-  <img src="./Zelosify-Frontend/public/assets/images/architecture.png" width="700" alt="AI Recommendation Architecture" />
+  <img src="Zelosify-Frontend/public/assets/images/architecture.png" width="700" alt="AI Recommendation Architecture" />
 </p>
 
 ### Secure User Onboarding & Auth Flow
