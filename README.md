@@ -1,164 +1,369 @@
-# Zelosify Recruit — Enterprise AI Hiring Platform
+# Zelosify Recruit — Vendor & Hiring Manager Contract Management Module
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat&logo=typescript&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-22.x-339933?style=flat&logo=nodedotjs&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Next.js-15-000000?style=flat&logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=black)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?style=flat&logo=postgresql&logoColor=white)
 ![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat&logo=prisma&logoColor=white)
 ![Keycloak](https://img.shields.io/badge/Keycloak-IAM-4D4D4D?style=flat&logo=keycloak&logoColor=white)
 ![AWS S3](https://img.shields.io/badge/AWS_S3-Storage-FF9900?style=flat&logo=amazons3&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat&logo=docker&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3.x-06B6D4?style=flat&logo=tailwindcss&logoColor=white)
+![Redux](https://img.shields.io/badge/Redux_Toolkit-2.x-764ABC?style=flat&logo=redux&logoColor=white)
+![License](https://img.shields.io/badge/License-ISC-blue?style=flat)
 
-A production-grade, multi-tenant recruitment platform that streamlines vendor candidate submission, deterministic AI-powered resume evaluation, and hiring manager decision workflows — all secured by strict Role-Based Access Control (RBAC) and Keycloak IAM.
-
----
-
-## 📖 Table of Contents
-
-1. [Problem Statement & Objective](#problem-statement--objective)
-2. [System Architecture](#system-architecture)
-   - [AI Recommendation Orchestrator](#1-3-phase-ai-recommendation-orchestrator)
-   - [Secure User Onboarding & 2FA Flow](#2-secure-user-onboarding--2fa-flow)
-3. [Key Features](#key-features)
-4. [Tech Stack](#tech-stack)
-5. [Getting Started (Quick Setup)](#getting-started-quick-setup)
-6. [Repository Structure](#repository-structure)
+A full-stack, multi-tenant recruitment platform that streamlines vendor candidate submission, AI-powered resume evaluation, and hiring manager decision workflows — all within a secure, role-based architecture.
 
 ---
 
-## 🎯 Problem Statement & Objective
+## Table of Contents
 
-Enterprise recruitment workflows are often fragmented. Vendors submit CVs via email, hiring managers manually grade them, and no centralized audit trail exists. Worse, implementing AI often results in "LLM Wrappers" that hallucinate scores and cannot be mathematically audited.
-
-**Zelosify Recruit** solves this by providing a unified SaaS platform where:
-- **IT Vendors** securely submit PDF/PPTX resumes via pre-signed S3 URLs.
-- A **3-Phase Agentic AI Pipeline** parses resumes and mathematically scores them using a **Deterministic Matching Engine** (zero hallucination).
-- **Hiring Managers** review the transparent, AI-generated reasoning and shortlist candidates.
-- Everything is heavily gated by **Tenant-Isolation** and **Keycloak 2FA**.
-
----
-
-## 🏗️ System Architecture
-
-### 1. 3-Phase AI Recommendation Orchestrator
-Our AI system is not a simple LLM wrapper. It uses a strict tool-calling loop where the LLM is only used for text extraction and reasoning, while the actual scoring is done by a mathematically deterministic TypeScript engine.
-
-![AI Recommendation Architecture](./Zelosify-Frontend/public/assets/architecture.png)
-
-### 2. Secure User Onboarding & 2FA Flow
-Our authentication flow is backed by a Dockerized Keycloak server, utilizing TOTP generation (`otplib`) and strictly HTTP-Only secure cookies to prevent XSS attacks.
-
-#### Registration Flow
-```mermaid
-sequenceDiagram
-    autonumber
-    actor U as New User
-    participant F as Next.js Frontend
-    participant B as Node.js Backend
-    participant K as Dockerized Keycloak
-    participant GA as Google Authenticator
-
-    %% Registration & Initial Auth
-    U->>F: Submits Registration Details
-    F->>B: POST /register
-    B->>K: Create User Identity (Admin API)
-    B->>K: Authenticate to fetch initial JWTs
-    K-->>B: Returns secure JWTs
-    
-    %% 2FA Setup
-    B->>B: Generate TOTP Secret (otplib)
-    B-->>F: Sets JWT Cookies + registration_token="pending"<br/>Returns Base64 QR Code
-    F-->>U: Displays QR Code on screen
-    
-    %% Verification Loop
-    U->>GA: Scans QR Code with phone
-    GA-->>U: Displays 1st 6-digit code
-    U->>F: Enters 6-digit TOTP code
-    F->>B: POST /verify-totp
-    B->>B: Validates TOTP code mathematically
-    B-->>F: Success! Clears registration_token cookie
-    F->>U: Unlocks & Routes to Role-Based Dashboard
-```
-
-#### Login Flow
-```mermaid
-sequenceDiagram
-    autonumber
-    actor U as Returning User
-    participant GA as Google Authenticator
-    participant F as Next.js Frontend
-    participant B as Node.js Backend
-    participant K as Dockerized Keycloak
-
-    U->>GA: Opens app on phone
-    GA-->>U: Displays live 6-digit code
-    U->>F: Submits Email, Password & TOTP Code
-    F->>B: POST /login
-
-    B->>B: 1. Verify TOTP Code (otplib)
-    
-    alt TOTP is Valid
-        B->>K: 2. Authenticate Password
-        K-->>B: Returns secure JWTs
-        B-->>F: 3. Set HTTP-Only Cookies <br/> (access_token, refresh_token, role)
-        F->>U: Route to secure Role-Based Dashboard
-    else TOTP is Invalid
-        B-->>F: 401 Unauthorized
-        F-->>U: Deny Access (Display Error)
-    end
-```
+1. [Problem Statement / Objective](#problem-statement--objective)
+2. [Features](#features)
+3. [Tech Stack](#tech-stack)
+4. [System Architecture / Workflow](#system-architecture--workflow)
+5. [Installation & Setup](#installation--setup)
+6. [Usage](#usage)
+7. [Screenshots / Demo](#screenshots--demo)
+8. [API Integration](#api-integration)
+9. [Folder Structure](#folder-structure)
+10. [Contributing](#contributing)
+11. [License](#license)
+12. [Author / Contact](#author--contact)
 
 ---
 
-## ✨ Key Features
+## Problem Statement / Objective
 
-- **Strict Multi-Tenancy:** Prisma middleware and API route guards ensure data is 100% isolated by `tenantId`.
-- **Dynamic Tool-Calling Agent:** Groq (Llama 3.1) autonomously orchestrates native PDF and PPTX parsing tools without external third-party parsing dependencies.
-- **Deterministic Math Engine:** The LLM does NOT calculate the score. All matching is handled deterministically by a hardcoded TypeScript engine, preventing hallucinations.
-- **Enterprise IAM:** Full integration with Keycloak (Dockerized), TOTP Authenticator apps, and strict HTTP-Only cookie management.
-- **High Observability:** Structured JSON logging captures LLM token usage, latency (ms), and persistence of reasoning metadata inside PostgreSQL.
+Enterprise recruitment processes frequently suffer from fragmented tooling: vendors submit candidate CVs through email or disconnected portals, hiring managers evaluate profiles manually, and no centralised audit trail exists. This results in slow time-to-hire, inconsistent candidate assessment, and poor visibility across procurement teams.
+
+Furthermore, implementing AI into recruitment often results in fragile "LLM Wrappers" that hallucinate scores and cannot be mathematically audited.
+
+**Zelosify Recruit** solves this by providing a unified, multi-tenant SaaS platform where:
+- IT vendors securely submit candidate profiles (native PDF and PPTX resumes) against open job requirements via pre-signed S3 URLs.
+- A **3-Phase Agentic AI Pipeline** orchestrates LLM text extraction and maps it to a **Deterministic Scoring Engine**, ensuring candidate ranking is 100% hallucination-free and mathematically auditable.
+- Hiring managers review transparent, AI-generated reasoning, shortlist or reject profiles, and track the full hiring lifecycle.
+- All actions are gated by fine-grained role-based access control (RBAC) with Keycloak SSO.
 
 ---
 
-## 🛠️ Tech Stack
+## Features
+
+### Vendor Portal
+- Browse and filter active job openings scoped to the vendor's tenant.
+- Secure, scalable resume upload via direct-to-S3 Pre-signed URLs (bypassing backend bottlenecks).
+- Pre-submission profile management (soft-delete uploads).
+- Time-limited S3 pre-signed URLs for resume preview and validation.
+
+### AI-Powered Recommendation Engine
+- Autonomous **Agentic Pipeline** orchestrated dynamically without hardcoded sequences:
+  - **Tool A (Extraction):** Dynamic native parsing of PDF/PPTX without third-party parser dependencies.
+  - **Tool B (Scoring):** A strictly deterministic TypeScript math engine that scores candidates purely on overlapping required skills arrays mapped exactly to job types.
+  - **Tool C (Reasoning):** LLM synthesis of the mathematical score to generate human-readable justifications.
+- Backed by **Groq (Llama 3.1)** for incredibly fast, low-latency inference.
+- Advanced observability logging tokens used, extraction latency, and reasoning confidence into the DB.
+
+### Hiring Manager Dashboard
+- View all openings assigned to the hiring manager.
+- Per-opening candidate list with AI recommendation scores, matched/missing skills, and transparent reasoning.
+- One-click shortlist or reject actions with full audit timestamps.
+- Native resume viewer utilizing pre-signed S3 URLs.
+
+### Security & Identity
+- **Keycloak** OpenID Connect SSO with session management.
+- JWT verification and refresh token rotation.
+- Custom TOTP-based two-factor authentication loop (`otplib` + QR code generation) during signup.
+- Role-based route guards enforced on server (Express middleware) and client (Next.js middleware).
+
+### Multi-Tenancy
+- All data (openings, profiles, users) is rigidly scoped to a `tenantId`.
+- Tenant isolation enforced strictly at the database query level via Prisma middleware.
+
+---
+
+## Tech Stack
 
 | Layer | Technology | Purpose |
 |---|---|---|
-| **Frontend** | Next.js 15, React 19, Tailwind CSS | UI, SSR/CSR, and styling |
-| **Backend** | Node.js 22, Express, TypeScript 5 | REST API and Agent Orchestration |
-| **Database & ORM** | PostgreSQL 15, Prisma | Multi-tenant relational data store |
-| **Identity & Security** | Keycloak, JWT, `otplib` | OIDC SSO, session management, 2FA |
-| **Storage** | AWS S3 (Pre-signed URLs) | Secure, backend-bypassed resume uploads |
+| **Frontend** | Next.js 15, React 19 | App shell, SSR/CSR, routing |
+| **UI Library** | Tailwind CSS 3, shadcn/ui (Radix UI) | Component primitives and styling |
+| **State Management** | Redux Toolkit 2, React Redux | Global client state |
+| **Backend** | Node.js 22, Express 4, TypeScript 5 | REST API and Agent Orchestrator |
+| **ORM** | Prisma 6 | Type-safe PostgreSQL access |
+| **Database** | PostgreSQL 15 | Relational data store |
+| **Authentication** | Keycloak 26, JWT, TOTP | SSO, session, 2FA |
+| **File Storage** | AWS S3, `@aws-sdk/client-s3` | Resume storage and pre-signed URLs |
 | **AI / Inference** | Groq (Llama 3.1) | Low-latency tool-calling agent |
+| **Containerisation** | Docker Compose | Local PostgreSQL + Keycloak services |
+| **Testing** | Vitest | Unit tests for deterministic logic |
 
 ---
 
-## 🚀 Getting Started (Quick Setup)
+## System Architecture / Workflow
 
-1. **Boot Infrastructure:**
-   ```bash
-   cd Zelosify-Backend/Server
-   docker-compose up -d
-   ```
-2. **Start the Backend:**
-   ```bash
-   npm install
-   npm run prisma:migrate
-   npm run dev
-   ```
-3. **Start the Frontend:**
-   ```bash
-   cd ../../Zelosify-Frontend
-   npm install
-   npm run dev
-   ```
+### AI Recommendation Engine Architecture
+![AI Recommendation Architecture](./Zelosify-Frontend/public/assets/images/architecture.png)
 
-*(For detailed setup and API documentation, please refer to the specific READMEs inside the Frontend and Backend folders).*
+### Secure User Onboarding & Auth Flow
+
+#### 1. Registration & 2FA Flow
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Backend
+    participant Keycloak
+    
+    User->>Frontend: Register Details
+    Frontend->>Backend: POST /register
+    Backend->>Keycloak: Create User & Fetch JWTs
+    Backend-->>Frontend: Set Temp Cookies & Return QR Code
+    User->>Frontend: Scan QR & Enter 6-digit TOTP
+    Frontend->>Backend: POST /verify-totp
+    Backend-->>Frontend: Success! Clear Temp Cookie
+    Frontend->>User: Route to Dashboard
+```
+
+#### 2. Login Flow
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Backend
+    participant Keycloak
+    
+    User->>Frontend: Login (Email, Pass, TOTP)
+    Frontend->>Backend: POST /login
+    Backend->>Backend: 1. Verify TOTP mathematically
+    Backend->>Keycloak: 2. Authenticate Password
+    Keycloak-->>Backend: Secure JWTs
+    Backend-->>Frontend: 3. Set HTTP-Only Cookies (access, refresh, role)
+    Frontend->>User: Route to Dashboard
+```
+
+### End-to-end hiring workflow:
+1. **Admin** creates a job opening and assigns a hiring manager.
+2. **IT Vendor** browses open roles, uploads candidate PDFs/PPTXs to S3 via Pre-signed URLs.
+3. **Backend** queues AI recommendation jobs based on S3 object keys.
+4. **Recommendation Engine** dynamically parses resumes natively, evaluates via deterministic math, and persists reasoning.
+5. **Hiring Manager** reviews mathematically scored candidates, shortlists or rejects.
+6. All state changes are timestamped and stored for audit.
 
 ---
 
-## 📂 Repository Structure
+## Installation & Setup
 
-- `Zelosify-Backend/` - Contains the Express.js server, Prisma schemas, and the 3-Phase AI Orchestrator.
-- `Zelosify-Frontend/` - Contains the Next.js application, React components, and Role-Based Dashboards.
+### Prerequisites
+
+| Requirement | Version |
+|---|---|
+| Node.js | ≥ 22 |
+| npm | ≥ 9 |
+| Docker & Docker Compose | Latest stable |
+| PostgreSQL | 15 (via Docker) |
+| AWS Account | S3 bucket required |
+| Keycloak Realm | Pre-configured realm exported |
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/SBK-07/Vendor-Hiring-Manager-Contract-Management-Module.git
+cd Vendor-Hiring-Manager-Contract-Management-Module
+```
+
+### 2. Start Infrastructure Services (PostgreSQL + Keycloak)
+
+```bash
+cd Zelosify-Backend/Server
+docker compose up -d
+```
+
+Wait for both containers to report healthy. Keycloak admin UI is available at `http://localhost:8080/auth`.
+
+### 3. Backend Setup
+
+```bash
+cd Zelosify-Backend/Server
+
+# Install dependencies
+npm install
+
+# Copy and configure environment variables
+cp .env.example .env
+
+# Run database migrations
+npm run prisma:migrate
+
+# Start development server
+npm run dev
+```
+
+Backend runs on **http://localhost:5000**.
+
+### 4. Frontend Setup
+
+```bash
+cd Zelosify-Frontend
+
+# Install dependencies
+npm install
+
+# Copy and configure environment variables
+cp .env.example .env.local
+
+# Start development server
+npm run dev
+```
+
+Frontend runs on **http://localhost:5173**.
+
+---
+
+## Usage
+
+### Running Tests
+
+```bash
+# Backend tests for Deterministic Scoring logic
+cd Zelosify-Backend/Server
+npm test
+```
+
+### Building for Production
+
+```bash
+# Backend
+cd Zelosify-Backend/Server
+npm run build 
+npm run prisma:deploy
+npm start
+
+# Frontend
+cd Zelosify-Frontend
+npm run build
+npm start
+```
+
+### Role-Based Access
+
+| Role | Portal Access |
+|---|---|
+| `ADMIN` | Full system administration |
+| `HIRING_MANAGER` | View openings, review/shortlist/reject profiles |
+| `IT_VENDOR` | Browse openings, upload candidate profiles |
+
+---
+
+## Screenshots / Demo
+
+> Screenshots and a live demo are not yet published. Contributions and deployment links are welcome.
+
+---
+
+## API Integration
+
+All API endpoints are versioned under `/api/v1/`. Authentication is enforced via JWT Bearer tokens issued by Keycloak and transmitted via HTTP-Only cookies.
+
+### Authentication
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/v1/auth/login` | Initiate Keycloak login with TOTP |
+| `POST` | `/api/v1/auth/logout` | Terminate session and clear cookies |
+| `POST` | `/api/v1/auth/totp/setup` | Generate TOTP secret + QR code |
+| `POST` | `/api/v1/auth/totp/verify` | Verify TOTP code |
+
+### Hiring Manager
+
+| Method | Endpoint | Auth Role | Description |
+|---|---|---|---|
+| `GET` | `/api/v1/hiring-manager/openings` | `HIRING_MANAGER` | List assigned openings |
+| `GET` | `/api/v1/hiring-manager/openings/:id/profiles` | `HIRING_MANAGER` | Get candidate profiles for an opening |
+| `GET` | `/api/v1/hiring-manager/profiles/:id/resume-url` | `HIRING_MANAGER` | Get pre-signed resume download URL |
+| `POST` | `/api/v1/hiring-manager/profiles/:id/shortlist` | `HIRING_MANAGER` | Shortlist a candidate profile |
+| `POST` | `/api/v1/hiring-manager/profiles/:id/reject` | `HIRING_MANAGER` | Reject a candidate profile |
+
+### Vendor
+
+| Method | Endpoint | Auth Role | Description |
+|---|---|---|---|
+| `GET` | `/api/v1/vendor/openings` | `IT_VENDOR` | List available job openings |
+| `GET` | `/api/v1/vendor/openings/:id` | `IT_VENDOR` | Get opening details |
+| `POST` | `/api/v1/vendor/openings/:id/profiles/presign` | `IT_VENDOR` | Generate Pre-Signed S3 upload URL |
+
+---
+
+## Folder Structure
+
+```
+Vendor-Hiring-Manager-Contract-Management-Module/
+├── Zelosify-Backend/
+│   └── Server/
+│       ├── prisma/
+│       │   ├── schema.prisma          # Database models
+│       │   └── migrations/            # Prisma migration history
+│       ├── src/
+│       │   ├── config/                # Keycloak & Environment configuration
+│       │   ├── controllers/           # Auth, Hiring, and Vendor logic
+│       │   ├── middlewares/           # JWT auth + RBAC middleware
+│       │   ├── routers/               # API route definitions
+│       │   ├── services/
+│       │   │   ├── ai/                # Agent Orchestrator & Deterministic Engine
+│       │   │   └── vendorService.ts   # Vendor business logic
+│       │   └── index.ts               # Express server entry point
+│       ├── tests/                     # Vitest unit tests for AI logic
+│       ├── docker-compose.yml         # PostgreSQL + Keycloak local stack
+│       └── package.json
+│
+└── Zelosify-Frontend/
+    ├── public/                        # Static assets & architecture images
+    └── src/
+        ├── app/                       # Next.js App Router 
+        │   ├── (Landing)/             # Auth pages
+        │   └── (UserDashBoard)/       # Role-based views
+        ├── components/                # Shared UI components (shadcn/ui)
+        ├── hooks/                     # Custom React hooks
+        ├── middleware.js              # Route-level auth middleware
+        ├── redux/                     # Redux Toolkit store
+        ├── styles/                    # Global CSS / Tailwind
+        └── utils/                     # Interceptors & Utilities
+```
+
+---
+
+## Contributing
+
+Contributions are welcome. Please follow the steps below:
+
+1. **Fork** the repository and create a feature branch:
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+2. **Implement** your changes, following the existing TypeScript and ESLint conventions.
+3. **Test** your changes:
+   ```bash
+   cd Zelosify-Backend/Server && npm test
+   ```
+4. **Commit** using conventional commits.
+5. **Push** and open a pull request against `main`.
+
+### Code Style
+- **Backend:** TypeScript strict mode, ESM modules, Prisma for all DB access. No direct SQL queries.
+- **Frontend:** Next.js App Router conventions, Tailwind CSS utility classes, Redux Toolkit.
+- All secure routes must pass through RBAC middleware.
+
+---
+
+## License
+
+This project is licensed under the **ISC License**.
+
+---
+
+## Author / Contact
+
+**SBK-07**
+- GitHub: [@SBK-07](https://github.com/SBK-07)
+
+*Built as a production-oriented prototype demonstrating full-stack engineering, AI-augmented workflows, multi-tenant SaaS architecture, and enterprise-grade identity management.*
