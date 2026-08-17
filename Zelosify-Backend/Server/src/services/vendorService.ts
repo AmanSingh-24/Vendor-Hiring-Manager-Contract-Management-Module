@@ -50,6 +50,24 @@ export const presignProfileService = async (tenantId: string, openingId: string,
   return await generatePresignedUrl(tenantId, openingId, filename, contentType);
 };
 
+// Helper to map seeded job titles to required skills for the AI engine
+const getRequiredSkillsForTitle = (title: string): string[] => {
+  const t = title.toLowerCase();
+  if (t.includes('software')) return ['React', 'Node.js', 'AWS', 'TypeScript'];
+  if (t.includes('frontend')) return ['HTML', 'CSS', 'JavaScript', 'React'];
+  if (t.includes('cloud')) return ['AWS', 'Azure', 'Kubernetes', 'Docker'];
+  if (t.includes('devops')) return ['CI/CD', 'Jenkins', 'Docker', 'Kubernetes', 'AWS'];
+  if (t.includes('data scientist')) return ['Python', 'Machine Learning', 'SQL', 'Pandas'];
+  if (t.includes('product manager')) return ['Agile', 'Scrum', 'Jira', 'Roadmapping'];
+  if (t.includes('ux designer')) return ['Figma', 'Wireframing', 'Prototyping', 'User Research'];
+  if (t.includes('quality assurance') || t.includes('qa')) return ['Selenium', 'Cypress', 'Testing', 'QA'];
+  if (t.includes('backend')) return ['Node.js', 'Express', 'MongoDB', 'PostgreSQL'];
+  if (t.includes('security')) return ['Cybersecurity', 'Penetration Testing', 'Network Security'];
+  if (t.includes('machine learning')) return ['Python', 'TensorFlow', 'PyTorch', 'Machine Learning'];
+  if (t.includes('it support')) return ['Troubleshooting', 'Networking', 'Active Directory'];
+  return ['Communication', 'Teamwork', 'Problem Solving']; // Default fallback
+};
+
 export const uploadProfileService = async (tenantId: string, openingId: string, userId: string, s3Key: string) => {
   const opening = await prisma.opening.findFirst({ where: { id: openingId, tenantId } });
   if (!opening) return null;
@@ -65,7 +83,7 @@ export const uploadProfileService = async (tenantId: string, openingId: string, 
   processResumeWithAgent(s3Key, {
     minExp: opening.experienceMin,
     maxExp: opening.experienceMax,
-    requiredSkills: opening.title.includes('Software') ? ['React', 'Node.js', 'AWS', 'TypeScript'] : [], 
+    requiredSkills: getRequiredSkillsForTitle(opening.title), 
     requiredLocation: opening.location || "Remote"
   }).then(async (aiResult) => {
     await prisma.$transaction(async (tx) => {

@@ -54,6 +54,22 @@ const SKILL_ALIASES: Record<string, string> = {
   "expressjs": "express",
   "vuejs": "vue",
   "angularjs": "angular",
+  "ml": "machine learning",
+  "ai": "artificial intelligence",
+  "quality assurance": "qa",
+  "continuous integration": "cicd",
+  "continuous deployment": "cicd",
+  "ci": "cicd",
+  "cd": "cicd",
+  "ux": "user experience",
+  "ui": "user interface",
+  "microsoft azure": "azure",
+  "infosec": "cybersecurity",
+  "netsec": "network security",
+  "tf": "tensorflow",
+  "py": "python",
+  "pentesting": "penetration testing",
+  "pen testing": "penetration testing",
 };
 
 /**
