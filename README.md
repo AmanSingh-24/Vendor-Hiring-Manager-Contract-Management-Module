@@ -1,4 +1,4 @@
-# Zelosify Recruit — Vendor & Hiring Manager Contract Management Module
+# Zelosify — Vendor & Hiring Manager Contract Management Module
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat&logo=typescript&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-22.x-339933?style=flat&logo=nodedotjs&logoColor=white)
@@ -11,7 +11,7 @@
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat&logo=docker&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3.x-06B6D4?style=flat&logo=tailwindcss&logoColor=white)
 ![Redux](https://img.shields.io/badge/Redux_Toolkit-2.x-764ABC?style=flat&logo=redux&logoColor=white)
-![License](https://img.shields.io/badge/License-ISC-blue?style=flat)
+
 
 A full-stack, multi-tenant recruitment platform that streamlines vendor candidate submission, AI-powered resume evaluation, and hiring manager decision workflows — all within a secure, role-based architecture.
 
@@ -25,12 +25,11 @@ A full-stack, multi-tenant recruitment platform that streamlines vendor candidat
 4. [System Architecture / Workflow](#system-architecture--workflow)
 5. [Installation & Setup](#installation--setup)
 6. [Usage](#usage)
-7. [Screenshots / Demo](#screenshots--demo)
-8. [API Integration](#api-integration)
-9. [Folder Structure](#folder-structure)
-10. [Contributing](#contributing)
-11. [License](#license)
-12. [Author / Contact](#author--contact)
+7. [API Integration](#api-integration)
+8. [Folder Structure](#folder-structure)
+9. [Contributing](#contributing)
+10. [License](#license)
+11. [Author / Contact](#author--contact)
 
 ---
 
@@ -40,7 +39,7 @@ Enterprise recruitment processes frequently suffer from fragmented tooling: vend
 
 Furthermore, implementing AI into recruitment often results in fragile "LLM Wrappers" that hallucinate scores and cannot be mathematically audited.
 
-**Zelosify Recruit** solves this by providing a unified, multi-tenant SaaS platform where:
+**Zelosify** solves this by providing a unified, multi-tenant SaaS platform where:
 - IT vendors securely submit candidate profiles (native PDF and PPTX resumes) against open job requirements via pre-signed S3 URLs.
 - A **3-Phase Agentic AI Pipeline** orchestrates LLM text extraction and maps it to a **Deterministic Scoring Engine**, ensuring candidate ranking is 100% hallucination-free and mathematically auditable.
 - Hiring managers review transparent, AI-generated reasoning, shortlist or reject profiles, and track the full hiring lifecycle.
@@ -143,12 +142,11 @@ sequenceDiagram
 ```
 
 ### End-to-end hiring workflow:
-1. **Admin** creates a job opening and assigns a hiring manager.
-2. **IT Vendor** browses open roles, uploads candidate PDFs/PPTXs to S3 via Pre-signed URLs.
-3. **Backend** queues AI recommendation jobs based on S3 object keys.
-4. **Recommendation Engine** dynamically parses resumes natively, evaluates via deterministic math, and persists reasoning.
-5. **Hiring Manager** reviews mathematically scored candidates, shortlists or rejects.
-6. All state changes are timestamped and stored for audit.
+1. **IT Vendor** browses open roles, uploads candidate PDFs/PPTXs to S3 via Pre-signed URLs.
+2. **Backend** queues AI recommendation jobs based on S3 object keys.
+3. **Recommendation Engine** dynamically parses resumes natively, evaluates via deterministic math, and persists reasoning.
+4. **Hiring Manager** reviews mathematically scored candidates, shortlists or rejects.
+
 
 ---
 
@@ -168,7 +166,7 @@ sequenceDiagram
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/SBK-07/Vendor-Hiring-Manager-Contract-Management-Module.git
+git clone https://github.com/AmanSingh-24/Vendor-Hiring-Manager-Contract-Management-Module.git
 cd Vendor-Hiring-Manager-Contract-Management-Module
 ```
 
@@ -190,7 +188,7 @@ cd Zelosify-Backend/Server
 npm install
 
 # Copy and configure environment variables
-cp .env.example .env
+cp .env
 
 # Run database migrations
 npm run prisma:migrate
@@ -208,9 +206,6 @@ cd Zelosify-Frontend
 
 # Install dependencies
 npm install
-
-# Copy and configure environment variables
-cp .env.example .env.local
 
 # Start development server
 npm run dev
@@ -249,17 +244,9 @@ npm start
 
 | Role | Portal Access |
 |---|---|
-| `ADMIN` | Full system administration |
 | `HIRING_MANAGER` | View openings, review/shortlist/reject profiles |
 | `IT_VENDOR` | Browse openings, upload candidate profiles |
 
----
-
-## Screenshots / Demo
-
-> Screenshots and a live demo are not yet published. Contributions and deployment links are welcome.
-
----
 
 ## API Integration
 
@@ -296,74 +283,166 @@ All API endpoints are versioned under `/api/v1/`. Authentication is enforced via
 
 ## Folder Structure
 
-```
+```text
 Vendor-Hiring-Manager-Contract-Management-Module/
 ├── Zelosify-Backend/
 │   └── Server/
+│       ├── .env
+│       ├── .gitignore
+│       ├── docker-compose.yml
+│       ├── nodemon.json
+│       ├── package-lock.json
+│       ├── package.json
+│       ├── tsconfig.json
+│       ├── vitest.config.ts
 │       ├── prisma/
-│       │   ├── schema.prisma          # Database models
-│       │   └── migrations/            # Prisma migration history
+│       │   ├── schema.prisma
+│       │   └── migrations/
 │       ├── src/
-│       │   ├── config/                # Keycloak & Environment configuration
-│       │   ├── controllers/           # Auth, Hiring, and Vendor logic
-│       │   ├── middlewares/           # JWT auth + RBAC middleware
-│       │   ├── routers/               # API route definitions
+│       │   ├── index.ts
+│       │   ├── config/
+│       │   │   ├── keycloak/
+│       │   │   │   └── index.ts
+│       │   │   └── multer/
+│       │   │       └── index.ts
+│       │   ├── controllers/
+│       │   │   ├── auth/
+│       │   │   │   ├── local/
+│       │   │   │   │   ├── localAuthController.ts
+│       │   │   │   │   ├── localLogin.ts
+│       │   │   │   │   └── localRegister.ts
+│       │   │   │   └── oidc/
+│       │   │   │       └── oidcController.ts
+│       │   │   ├── hiring/
+│       │   │   │   └── index.ts
+│       │   │   ├── vendor/
+│       │   │   │   └── index.ts
+│       │   │   └── controllers.ts
+│       │   ├── middlewares/
+│       │   │   └── auth/
+│       │   │       └── index.ts
+│       │   ├── routers/
+│       │   │   ├── auth/
+│       │   │   │   └── index.ts
+│       │   │   ├── aws/
+│       │   │   │   └── index.ts
+│       │   │   ├── hiring/
+│       │   │   │   └── index.ts
+│       │   │   ├── public/
+│       │   │   │   └── index.ts
+│       │   │   └── vendor/
+│       │   │       └── index.ts
 │       │   ├── services/
-│       │   │   ├── ai/                # Agent Orchestrator & Deterministic Engine
-│       │   │   └── vendorService.ts   # Vendor business logic
-│       │   └── index.ts               # Express server entry point
-│       ├── tests/                     # Vitest unit tests for AI logic
-│       ├── docker-compose.yml         # PostgreSQL + Keycloak local stack
-│       └── package.json
+│       │   │   ├── ai/
+│       │   │   │   ├── agent.ts
+│       │   │   │   ├── orchestrator.ts
+│       │   │   │   └── tools/
+│       │   │   │       ├── matchingEngine.test.ts
+│       │   │   │       ├── matchingEngine.ts
+│       │   │   │       └── tools.ts
+│       │   │   ├── storage/
+│       │   │   │   └── awsS3Service.ts
+│       │   │   └── vendorService.ts
+│       │   ├── helpers/
+│       │   │   └── index.ts
+│       │   ├── models/
+│       │   │   └── index.ts
+│       │   ├── scripts/
+│       │   │   └── setup.ts
+│       │   ├── types/
+│       │   │   └── index.ts
+│       │   └── utils/
+│       │       └── index.ts
+│       └── tests/
+│           └── integration/
+│               └── rbac-tenant.unit.test.ts
 │
 └── Zelosify-Frontend/
-    ├── public/                        # Static assets & architecture images
+    ├── package.json
+    ├── next.config.mjs
+    ├── postcss.config.mjs
+    ├── tailwind.config.mjs
+    ├── jsconfig.json
+    ├── .eslintrc.json
+    ├── .gitignore
+    ├── middleware.js
+    ├── components.json
+    ├── public/
+    │   ├── favicon.ico
+    │   └── assets/
+    │       └── images/
+    │           └── architecture.png
     └── src/
-        ├── app/                       # Next.js App Router 
-        │   ├── (Landing)/             # Auth pages
-        │   └── (UserDashBoard)/       # Role-based views
-        ├── components/                # Shared UI components (shadcn/ui)
-        ├── hooks/                     # Custom React hooks
-        ├── middleware.js              # Route-level auth middleware
-        ├── redux/                     # Redux Toolkit store
-        ├── styles/                    # Global CSS / Tailwind
-        └── utils/                     # Interceptors & Utilities
+        ├── app/
+        │   ├── layout.jsx
+        │   ├── page.jsx
+        │   ├── (Landing)/
+        │   │   └── layout.jsx
+        │   └── (UserDashBoard)/
+        │       ├── layout.jsx
+        │       ├── hiring-manager/
+        │       │   └── page.jsx
+        │       ├── vendor/
+        │       │   └── page.jsx
+        │       ├── business-user/
+        │       │   └── page.jsx
+        │       └── user/
+        │           └── page.jsx
+        ├── components/
+        │   ├── UI/
+        │   │   └── shadcn/
+        │   │       ├── button.jsx
+        │   │       ├── card.jsx
+        │   │       ├── input.jsx
+        │   │       ├── label.jsx
+        │   │       ├── select.jsx
+        │   │       ├── table.jsx
+        │   │       └── toast.jsx
+        │   └── UserDashboardPage/
+        │       ├── Header/
+        │       │   └── Header.jsx
+        │       └── SideBar/
+        │           └── SideBar.jsx
+        ├── contexts/
+        │   └── AuthContext.jsx
+        ├── hooks/
+        │   ├── Auth/
+        │   │   └── useAuth.js
+        │   └── UI/
+        │       └── useMobile.js
+        ├── lib/
+        │   └── utils.js
+        ├── pages/
+        │   └── LandingPage/
+        │       ├── LandingPage.jsx
+        │       └── auth/
+        │           ├── LoginPage.jsx
+        │           ├── RegisterPage.jsx
+        │           └── SetupTOTP.jsx
+        ├── redux/
+        │   ├── core/
+        │   │   ├── store.js
+        │   │   └── AllProvider.jsx
+        │   └── features/
+        │       └── Auth/
+        │           └── authSlice.js
+        ├── services/
+        │   └── api.js
+        ├── styles/
+        │   └── globals.css
+        └── utils/
+            ├── Auth/
+            │   └── roleUtils.js
+            ├── Axios/
+            │   └── AxiosInstance.js
+            └── Common/
+                └── fileUploadValidation.js
 ```
 
----
 
-## Contributing
+ Contact
 
-Contributions are welcome. Please follow the steps below:
-
-1. **Fork** the repository and create a feature branch:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-2. **Implement** your changes, following the existing TypeScript and ESLint conventions.
-3. **Test** your changes:
-   ```bash
-   cd Zelosify-Backend/Server && npm test
-   ```
-4. **Commit** using conventional commits.
-5. **Push** and open a pull request against `main`.
-
-### Code Style
-- **Backend:** TypeScript strict mode, ESM modules, Prisma for all DB access. No direct SQL queries.
-- **Frontend:** Next.js App Router conventions, Tailwind CSS utility classes, Redux Toolkit.
-- All secure routes must pass through RBAC middleware.
-
----
-
-## License
-
-This project is licensed under the **ISC License**.
-
----
-
-## Author / Contact
-
-**SBK-07**
-- GitHub: [@SBK-07](https://github.com/SBK-07)
+**AmanSingh/24**
+- GitHub: [@AmanSingh-24](https://github.com/AmanSingh-24)
 
 *Built as a production-oriented prototype demonstrating full-stack engineering, AI-augmented workflows, multi-tenant SaaS architecture, and enterprise-grade identity management.*
