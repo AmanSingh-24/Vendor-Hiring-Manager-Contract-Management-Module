@@ -135,8 +135,8 @@ const useAuth = () => {
         dispatch(closeSignoutConfirmation());
       }
 
-      // Navigate to login page
-      router.push("/user");
+      // Navigate to landing page
+      router.push("/");
       return result;
     } catch (error) {
       console.error("Logout error:", error);

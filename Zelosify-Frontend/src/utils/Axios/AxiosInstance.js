@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { clearAuthData } from "../Auth/authUtils";
 
 const axiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/api/v1",
   withCredentials: true,
 });
 

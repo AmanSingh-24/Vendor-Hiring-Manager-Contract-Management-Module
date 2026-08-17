@@ -133,7 +133,7 @@ export const signOut = createAsyncThunk(
     try {
       await axiosInstance.post("/auth/logout");
       dispatch(logout());
-      return "/user"; // Return the navigation path
+      return "/"; // Return the navigation path
     } catch (error) {
       return rejectWithValue(error.message);
     }

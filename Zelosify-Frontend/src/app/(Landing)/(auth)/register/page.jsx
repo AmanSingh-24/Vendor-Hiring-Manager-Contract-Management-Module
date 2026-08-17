@@ -149,14 +149,14 @@ export default function RegisterPage() {
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">First Name</label>
+                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">First Name <span className="text-red-500 ml-0.5">*</span></label>
                   <input
                     type="text" name="firstName" value={formData.firstName} onChange={handleChange} required
                     className="w-full px-4 py-2.5 bg-white dark:bg-[#1a1a1a] border border-zinc-300 dark:border-white/10 rounded-lg text-sm text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white/20 transition-all"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Last Name</label>
+                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Last Name <span className="text-red-500 ml-0.5">*</span></label>
                   <input
                     type="text" name="lastName" value={formData.lastName} onChange={handleChange} required
                     className="w-full px-4 py-2.5 bg-white dark:bg-[#1a1a1a] border border-zinc-300 dark:border-white/10 rounded-lg text-sm text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white/20 transition-all"
@@ -165,7 +165,7 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Email Address</label>
+                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Email Address <span className="text-red-500 ml-0.5">*</span></label>
                 <input
                   type="email" name="email" value={formData.email} onChange={handleChange} required
                   className="w-full px-4 py-2.5 bg-white dark:bg-[#1a1a1a] border border-zinc-300 dark:border-white/10 rounded-lg text-sm text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white/20 transition-all"
@@ -173,7 +173,7 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Username</label>
+                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Username <span className="text-red-500 ml-0.5">*</span></label>
                 <input
                   type="text" name="username" value={formData.username} onChange={handleChange} required
                   className="w-full px-4 py-2.5 bg-white dark:bg-[#1a1a1a] border border-zinc-300 dark:border-white/10 rounded-lg text-sm text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white/20 transition-all"
@@ -181,7 +181,7 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Password</label>
+                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Password <span className="text-red-500 ml-0.5">*</span></label>
                 <input
                   type="password" name="password" value={formData.password} onChange={handleChange} required
                   className="w-full px-4 py-2.5 bg-white dark:bg-[#1a1a1a] border border-zinc-300 dark:border-white/10 rounded-lg text-sm text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white/20 transition-all"
@@ -189,7 +189,7 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Role</label>
+                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Role <span className="text-red-500 ml-0.5">*</span></label>
                 <select
                   name="role" value={formData.role} onChange={handleChange}
                   className="w-full px-4 py-2.5 bg-white dark:bg-[#1a1a1a] border border-zinc-300 dark:border-white/10 rounded-lg text-sm text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white/20 transition-all"

@@ -42,7 +42,7 @@ export default function SetupTotpPage() {
     <div className="min-h-screen bg-white dark:bg-[#000000] text-zinc-900 dark:text-white flex flex-col relative overflow-hidden transition-colors duration-200">
       
       {/* Background Subtle Glows */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-100 dark:bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-zinc-200 dark:bg-white/5 rounded-full blur-[120px] pointer-events-none" />
       
       {/* Navbar */}
       <header className="w-full flex items-center justify-between px-8 py-8 z-10 max-w-[1400px] mx-auto">
@@ -80,10 +80,11 @@ export default function SetupTotpPage() {
         
         <div className="w-full max-w-xl bg-zinc-50 dark:bg-[#111111] border border-zinc-200 dark:border-white/5 shadow-sm dark:shadow-none rounded-[24px] p-6 md:p-12 text-center relative overflow-hidden">
           
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
+          {/* Subtle top highlight */}
+          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-zinc-400 dark:via-white/20 to-transparent"></div>
 
-          <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <ShieldCheck className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+          <div className="w-16 h-16 bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6 shrink-0">
+            <ShieldCheck className="w-8 h-8 text-zinc-900 dark:text-white" />
           </div>
 
           <h1 className="text-3xl font-bold tracking-tight mb-4 text-zinc-900 dark:text-white">
@@ -93,12 +94,15 @@ export default function SetupTotpPage() {
             Scan this QR code with your authenticator app (like Google Authenticator or Authy) to set up two-factor authentication.
           </p>
 
-          <div className="flex justify-center mb-10">
-            <div className="p-4 bg-white rounded-2xl border border-zinc-200 shadow-sm relative">
+          <div className="flex justify-center mb-10 relative">
+            {/* Subtle glow behind QR code */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-zinc-200 dark:bg-white/5 blur-3xl rounded-full pointer-events-none"></div>
+            
+            <div className="p-3 bg-white rounded-3xl border-[6px] border-zinc-100 dark:border-white/10 shadow-lg dark:shadow-none relative z-10 overflow-hidden">
               {qrCode ? (
-                <img src={qrCode} alt="TOTP QR Code" className="w-48 h-48 object-contain" />
+                <img src={qrCode} alt="TOTP QR Code" className="w-44 h-44 object-contain rounded-xl" />
               ) : (
-                <div className="w-48 h-48 flex flex-col items-center justify-center text-zinc-400 space-y-2">
+                <div className="w-44 h-44 flex flex-col items-center justify-center text-zinc-400 space-y-2 bg-zinc-50 rounded-xl border border-zinc-200">
                   <QrCode className="w-8 h-8 opacity-50" />
                   <span className="text-xs font-medium">QR Code missing</span>
                 </div>
@@ -106,12 +110,12 @@ export default function SetupTotpPage() {
             </div>
           </div>
 
-          <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-xl p-4 mb-8 text-left flex items-start gap-3">
-            <div className="mt-0.5">
-              <CheckCircle2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+          <div className="bg-zinc-50 dark:bg-[#151515] border border-zinc-200 dark:border-white/10 rounded-2xl p-5 mb-8 text-left flex items-start gap-4 mx-auto max-w-md">
+            <div className="mt-0.5 p-2 bg-zinc-200/50 dark:bg-white/5 rounded-xl shrink-0">
+              <CheckCircle2 className="w-5 h-5 text-zinc-700 dark:text-zinc-300" />
             </div>
-            <p className="text-sm text-blue-800 dark:text-blue-300 leading-relaxed font-medium">
-              After scanning the QR code, your app will start generating 6-digit codes. Click "I've scanned the code" to proceed to login.
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium">
+              After scanning the QR code, your app will start generating 6-digit codes. Click <span className="text-zinc-900 dark:text-white font-bold">"I've scanned the code"</span> to proceed to login.
             </p>
           </div>
 

@@ -89,8 +89,13 @@ export async function parseResumeImplementation(s3Key: string): Promise<string> 
 
   let rawText = "";
   if (s3Key.toLowerCase().endsWith(".pdf")) {
-    const data = await pdfExtraction(buffer);
-    rawText = data.text;
+    try {
+      const data = await pdfExtraction(buffer);
+      rawText = data.text;
+    } catch (e: any) {
+      logger.error("pdfExtraction failed", { s3Key, error: e.message });
+      rawText = "Error: Could not extract text from this PDF due to corruption or bad formatting.";
+    }
   } else if (s3Key.toLowerCase().endsWith(".pptx")) {
     rawText = extractPptxText(buffer);
   } else {

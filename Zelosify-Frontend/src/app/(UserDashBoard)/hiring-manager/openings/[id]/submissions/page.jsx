@@ -19,10 +19,6 @@ export default function SubmissionsEvaluationTable() {
   const [profiles, setProfiles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
-  
-  // Virtualization state
-  const [scrollTop, setScrollTop] = useState(0);
-  const containerRef = useRef(null);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -59,11 +55,6 @@ export default function SubmissionsEvaluationTable() {
     fetchData();
   }, [fetchData]);
 
-  // Handle scroll to track position
-  const handleScroll = (e) => {
-    setScrollTop(e.currentTarget.scrollTop);
-  };
-
   const handleAction = async (profileId, action) => {
     try {
       await api.post(`/hiring-manager/profiles/${profileId}/${action}`);
@@ -76,21 +67,6 @@ export default function SubmissionsEvaluationTable() {
       alert(`Failed to ${action} profile.`);
     }
   };
-
-  // Calculate virtualization bounds
-  const totalHeight = profiles.length * ROW_HEIGHT;
-  const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - 3); // Buffer of 3 rows above
-  const endIndex = Math.min(
-    profiles.length - 1, 
-    Math.floor((scrollTop + CONTAINER_HEIGHT) / ROW_HEIGHT) + 3 // Buffer of 3 rows below
-  );
-  
-  const visibleProfiles = useMemo(() => {
-    return profiles.slice(startIndex, endIndex + 1).map((profile, i) => ({
-      ...profile,
-      virtualIndex: startIndex + i
-    }));
-  }, [profiles, startIndex, endIndex]);
 
   if (isLoading) {
     return (
@@ -111,8 +87,8 @@ export default function SubmissionsEvaluationTable() {
               <div className="col-span-3 h-4 bg-zinc-200 dark:bg-zinc-800 rounded"></div>
               <div className="col-span-1 h-4 bg-zinc-200 dark:bg-zinc-800 rounded mx-4"></div>
               <div className="col-span-2 h-4 bg-zinc-200 dark:bg-zinc-800 rounded mx-4"></div>
-              <div className="col-span-5 h-4 bg-zinc-200 dark:bg-zinc-800 rounded"></div>
-              <div className="col-span-1 h-4 bg-zinc-200 dark:bg-zinc-800 rounded ml-4"></div>
+              <div className="col-span-4 h-4 bg-zinc-200 dark:bg-zinc-800 rounded"></div>
+              <div className="col-span-2 h-4 bg-zinc-200 dark:bg-zinc-800 rounded ml-4"></div>
             </div>
 
             <div className="overflow-y-hidden bg-white dark:bg-[#0a0a0a]" style={{ height: 600 }}>
@@ -131,13 +107,13 @@ export default function SubmissionsEvaluationTable() {
                   <div className="col-span-2 flex justify-center">
                     <div className="w-24 h-6 rounded-full bg-zinc-200 dark:bg-zinc-800"></div>
                   </div>
-                  <div className="col-span-5 space-y-2 pr-4">
-                    <div className="w-full h-3 bg-zinc-200 dark:bg-zinc-800 rounded"></div>
-                    <div className="w-4/5 h-3 bg-zinc-200 dark:bg-zinc-800 rounded"></div>
-                  </div>
-                  <div className="col-span-1 flex justify-end pr-2">
-                    <div className="w-8 h-8 rounded-full bg-zinc-200 dark:bg-zinc-800"></div>
-                  </div>
+                    <div className="col-span-4 space-y-2 pr-4">
+                      <div className="w-full h-3 bg-zinc-200 dark:bg-zinc-800 rounded"></div>
+                      <div className="w-4/5 h-3 bg-zinc-200 dark:bg-zinc-800 rounded"></div>
+                    </div>
+                    <div className="col-span-2 flex justify-end pr-2">
+                      <div className="w-16 h-8 rounded-full bg-zinc-200 dark:bg-zinc-800"></div>
+                    </div>
                 </div>
               ))}
             </div>
@@ -223,37 +199,23 @@ export default function SubmissionsEvaluationTable() {
                   <div className="col-span-3 pl-2">Candidate & Vendor</div>
                   <div className="col-span-1 text-center">AI Score</div>
                   <div className="col-span-2 text-center">Match Badge</div>
-                  <div className="col-span-5">AI Summary</div>
-                  <div className="col-span-1 text-right pr-2">Action</div>
+                    <div className="col-span-4">AI Summary</div>
+                    <div className="col-span-2 text-right pr-2">Action</div>
                 </div>
 
-                {/* Virtualized Body Container */}
-                <div 
-                  ref={containerRef}
-                  className="overflow-y-auto custom-scrollbar relative bg-white dark:bg-[#0a0a0a]"
-                  style={{ height: profiles.length > 0 ? Math.min(CONTAINER_HEIGHT, totalHeight) : 100 }}
-                  onScroll={handleScroll}
-                >
-                  {/* Inner height enforcer */}
-                  <div style={{ height: totalHeight, position: 'relative' }}>
+                {/* Standard Body Container */}
+                <div className="overflow-y-auto custom-scrollbar relative bg-white dark:bg-[#0a0a0a]" style={{ maxHeight: '800px' }}>
                 
                 {/* Visible Rows */}
-                {visibleProfiles.map((profile) => (
-                  <div 
-                    key={profile.id}
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      transform: `translateY(${profile.virtualIndex * ROW_HEIGHT}px)`,
-                      height: ROW_HEIGHT,
-                      width: '100%',
-                    }}
-                    className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-zinc-100 dark:border-white/5 hover:bg-zinc-50 dark:hover:bg-[#151515] transition-colors items-center group cursor-pointer"
-                  >
-                    
-                    {/* Candidate Info */}
-                    <div className="col-span-3 flex items-center gap-3 overflow-hidden pl-2">
-                      <div className="p-2.5 bg-zinc-100 dark:bg-[#1a1a1a] rounded-lg shrink-0">
+                {profiles.map((profile) => (
+                    <div 
+                      key={profile.id}
+                      className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-zinc-100 dark:border-white/5 hover:bg-zinc-50 dark:hover:bg-[#151515] transition-colors items-center group cursor-pointer"
+                    >
+                      
+                      {/* Candidate Info */}
+                      <div className="col-span-3 flex items-center gap-3 overflow-hidden pl-2">
+                        <div className="p-2.5 bg-zinc-100 dark:bg-[#1a1a1a] rounded-lg shrink-0">
                         <FileText className="w-5 h-5 text-zinc-500 dark:text-zinc-300" />
                       </div>
                       <div className="min-w-0">
@@ -262,71 +224,88 @@ export default function SubmissionsEvaluationTable() {
                       </div>
                     </div>
 
-                    {/* AI Score */}
-                    <div className="col-span-1 flex justify-center">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2
-                        ${profile.aiScore > 85 ? 'text-emerald-700 border-emerald-200 bg-emerald-50 dark:text-emerald-400 dark:border-emerald-400/30 dark:bg-emerald-400/10' : 
-                          profile.aiScore > 70 ? 'text-blue-700 border-blue-200 bg-blue-50 dark:text-blue-400 dark:border-blue-400/30 dark:bg-blue-400/10' : 
-                          profile.aiScore > 50 ? 'text-yellow-700 border-yellow-200 bg-yellow-50 dark:text-yellow-400 dark:border-yellow-400/30 dark:bg-yellow-400/10' : 
-                          'text-red-700 border-red-200 bg-red-50 dark:text-red-400 dark:border-red-400/30 dark:bg-red-400/10'}`}
-                      >
-                        {profile.aiScore}
+                      {/* AI Score */}
+                      <div className="col-span-1 flex justify-center">
+                        <div className="relative w-12 h-12 flex items-center justify-center">
+                          <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 36 36">
+                            {/* Background Track */}
+                            <circle 
+                              cx="18" cy="18" r="16" 
+                              fill="transparent" 
+                              className="stroke-zinc-200 dark:stroke-zinc-800" 
+                              strokeWidth="3" 
+                            />
+                            {/* Progress Arc */}
+                            <circle 
+                              cx="18" cy="18" r="16" 
+                              fill="transparent" 
+                              className="stroke-black dark:stroke-white transition-all duration-1000 ease-in-out" 
+                              strokeWidth="3" 
+                              strokeDasharray="100.5" 
+                              strokeDashoffset={100.5 - profile.aiScore} 
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                          <span className="relative z-10 font-bold text-sm text-black dark:text-white">
+                            {profile.aiScore}
+                          </span>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Match Badge */}
-                    <div className="col-span-2 flex justify-center">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium border flex items-center gap-1.5
-                        ${profile.aiBadgeColor === 'emerald' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' : 
-                          profile.aiBadgeColor === 'blue' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20' : 
-                          profile.aiBadgeColor === 'yellow' ? 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20' : 
-                          profile.aiBadgeColor === 'red' ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20' : 
-                          'bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-white/10 dark:text-zinc-300 dark:border-white/20'}`}
+                      {/* Match Badge */}
+                      <div className="col-span-2 flex justify-center">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium border-2 flex items-center gap-1.5 bg-transparent text-black dark:text-white
+                        ${profile.aiBadgeColor === 'emerald' ? 'border-emerald-500' : 
+                          profile.aiBadgeColor === 'blue' ? 'border-blue-500' : 
+                          profile.aiBadgeColor === 'yellow' ? 'border-yellow-500' : 
+                          profile.aiBadgeColor === 'red' ? 'border-red-500' : 
+                          'border-zinc-500'}`}
                       >
                         {profile.aiScore > 70 && <CheckCircle2 className="w-3 h-3" />}
                         {profile.aiBadge}
                       </span>
                     </div>
 
-                    {/* AI Summary */}
-                    <div className="col-span-5 text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2 leading-snug pr-4">
-                      {profile.aiSummary}
-                    </div>
-
-                    {/* Action */}
-                    <div className="col-span-1 flex justify-end gap-2 pr-2">
-                      {profile.status === 'SUBMITTED' ? (
-                        <>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); handleAction(profile.id, 'shortlist'); }}
-                            className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-colors border border-emerald-200 dark:border-emerald-500/20"
-                            title="Shortlist"
-                          >
-                            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                          </button>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); handleAction(profile.id, 'reject'); }}
-                            className="w-8 h-8 rounded-full bg-red-50 dark:bg-red-500/10 flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors border border-red-200 dark:border-red-500/20"
-                            title="Reject"
-                          >
-                            <span className="text-red-600 dark:text-red-400 font-bold text-sm leading-none">×</span>
-                          </button>
-                        </>
-                      ) : (
-                        <span className={`text-xs font-medium px-2 py-1 rounded-full ${profile.status === 'SHORTLISTED' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300' : 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300'}`}>
-                          {profile.status}
-                        </span>
-                      )}
-                    </div>
+                        {/* AI Summary */}
+                        <div className="col-span-4 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed pr-4">
+                          {profile.aiSummary}
+                        </div>
+    
+                        {/* Action */}
+                        <div className="col-span-2 flex flex-row items-center justify-center gap-2 pr-2">
+                          {profile.status === 'SUBMITTED' ? (
+                            <>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); handleAction(profile.id, 'shortlist'); }}
+                                className="w-full h-8 px-1 rounded-md bg-transparent flex items-center justify-center gap-1 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors border border-emerald-500 text-emerald-700 dark:text-emerald-400"
+                                title="Shortlist"
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                                <span className="text-xs font-semibold truncate">Shortlist</span>
+                              </button>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); handleAction(profile.id, 'reject'); }}
+                                className="w-full h-8 px-1 rounded-md bg-transparent flex items-center justify-center gap-1 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors border border-red-500 text-red-700 dark:text-red-400"
+                                title="Reject"
+                              >
+                                <span className="font-bold text-sm leading-none shrink-0">×</span>
+                                <span className="text-xs font-semibold truncate">Reject</span>
+                              </button>
+                            </>
+                          ) : (
+                            <span className="w-full text-xs font-semibold py-1.5 rounded-md flex items-center justify-center border border-zinc-900 dark:border-white bg-transparent text-black dark:text-white truncate px-1">
+                              {profile.status}
+                            </span>
+                          )}
+                        </div>
 
                   </div>
                 ))}
               </div>
-            </div>
             
             {/* Footer Info */}
             <div className="p-3 bg-zinc-50 dark:bg-[#111111] border-t border-zinc-200 dark:border-white/10 text-xs text-zinc-500 text-center">
-              Showing all {profiles.length} candidates. Powered by native DOM virtualization.
+              Showing all {profiles.length} candidates.
             </div>
               </div>
             </div>

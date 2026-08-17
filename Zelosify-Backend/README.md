@@ -14,7 +14,7 @@ This repository contains the Node.js / Express backend for **Zelosify Recruit**.
 
 1. **Service Layer Pattern**: All business logic is strictly decoupled from Express controllers.
 2. **Multi-Tenant Isolation**: Prisma extensions/middlewares ensure that every database query automatically scopes to the authenticated user's `tenantId`.
-3. **Agentic Pipeline (AI)**: We use **Groq (Llama 3.1)** in a highly constrained tool-calling loop. Unlike brittle "LLM Wrappers", our engine relies on a deterministic TypeScript algorithm (Tool B) to calculate candidate scores, completely preventing AI hallucination.
+3. **Agentic Pipeline (AI)**: We use **Groq (openai/gpt-oss-120b)** in a highly constrained tool-calling loop. Unlike brittle "LLM Wrappers", our engine relies on a deterministic TypeScript algorithm (Tool B) to calculate candidate scores, completely preventing AI hallucination.
 4. **Stateless Auth**: Authentication relies exclusively on Keycloak-issued JWTs, transmitted via secure HTTP-Only cookies. 
 5. **Direct-to-S3 Uploads**: We utilize Pre-signed URLs for resume uploads. The backend never buffers heavy PDF/PPTX files in memory, preventing Node.js event-loop blocking.
 6. **Frontend Integration**: The backend seamlessly supports a fully responsive Next.js frontend (Desktop/Tablet/Mobile) by providing robust error handling states and empty data representations through structured JSON responses and appropriate HTTP status codes.

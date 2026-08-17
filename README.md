@@ -58,7 +58,7 @@ Furthermore, implementing AI into recruitment often results in fragile "LLM Wrap
   - **Tool A (Extraction):** Dynamic native parsing of PDF/PPTX without third-party parser dependencies.
   - **Tool B (Scoring):** A strictly deterministic TypeScript math engine that scores candidates purely on overlapping required skills arrays mapped exactly to job types.
   - **Tool C (Reasoning):** LLM synthesis of the mathematical score to generate human-readable justifications.
-- Backed by **Groq (Llama 3.1)** for incredibly fast, low-latency inference.
+- Backed by **Groq (openai/gpt-oss-120b)** for incredibly fast, low-latency inference.
 - Advanced observability logging tokens used, extraction latency, and reasoning confidence into the DB.
 
 ### Hiring Manager Dashboard
@@ -95,7 +95,7 @@ Furthermore, implementing AI into recruitment often results in fragile "LLM Wrap
 | **Database** | PostgreSQL 15 | Relational data store |
 | **Authentication** | Keycloak 26, JWT, TOTP | SSO, session, 2FA |
 | **File Storage** | AWS S3, `@aws-sdk/client-s3` | Resume storage and pre-signed URLs |
-| **AI / Inference** | Groq (Llama 3.1) | Low-latency tool-calling agent |
+| **AI / Inference** | Groq (openai/gpt-oss-120b) | Low-latency tool-calling agent |
 | **Containerisation** | Docker Compose | Local PostgreSQL + Keycloak services |
 | **Testing** | Vitest | Unit tests for deterministic logic |
 

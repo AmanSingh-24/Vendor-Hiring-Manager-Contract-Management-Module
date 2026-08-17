@@ -44,8 +44,8 @@ export const SidebarMenuSubItem = memo(
           w-full rounded-md flex items-center gap-2 px-3 py-2 text-sm
           ${
             isActive
-              ? "bg-blue-50 text-blue-600 font-medium dark:bg-blue-900/20 dark:text-blue-400"
-              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+              ? "bg-black text-white font-medium dark:bg-white dark:text-black shadow-sm"
+              : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
           }
         `}
         >
@@ -53,8 +53,8 @@ export const SidebarMenuSubItem = memo(
             <item.icon
               className={`h-5 w-5 ${
                 isActive
-                  ? "text-blue-600 dark:text-blue-400"
-                  : "text-gray-500 dark:text-gray-400"
+                  ? "text-white dark:text-black"
+                  : "text-zinc-500 dark:text-zinc-400"
               }`}
             />
           )}

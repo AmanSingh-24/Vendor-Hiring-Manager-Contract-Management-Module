@@ -163,7 +163,7 @@ export default function LoginPage() {
             {step === 1 ? (
               <form onSubmit={handleLoginSubmit} className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Username or Email</label>
+                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Username or Email <span className="text-red-500 ml-0.5">*</span></label>
                   <input
                     type="text"
                     value={usernameOrEmail}
@@ -174,7 +174,7 @@ export default function LoginPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Password</label>
+                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Password <span className="text-red-500 ml-0.5">*</span></label>
                   <input
                     type="password"
                     value={password}
@@ -196,7 +196,7 @@ export default function LoginPage() {
             ) : (
               <form onSubmit={handleTotpSubmit} className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Authenticator Code</label>
+                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Authenticator Code <span className="text-red-500 ml-0.5">*</span></label>
                   <input
                     type="text"
                     value={totp}

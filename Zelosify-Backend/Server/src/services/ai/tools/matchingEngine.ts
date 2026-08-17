@@ -102,7 +102,9 @@ export const deterministicMatchingEngine = (input: MatchingEngineInput): Matchin
   // ─── 1. Experience Score ───
   let experienceMatchScore = 0;
   if (input.candidateExp < input.minExp) {
-    experienceMatchScore = 0;
+    // Provide a partial credit curve for candidates slightly under the threshold
+    // e.g., 4.9 years / 5 years = 0.98 (98% credit) instead of a hard 0
+    experienceMatchScore = input.candidateExp / Math.max(1, input.minExp);
   } else if (!input.maxExp || input.candidateExp <= input.maxExp) {
     experienceMatchScore = 1;
   } else {

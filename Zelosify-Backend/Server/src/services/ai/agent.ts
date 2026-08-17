@@ -9,7 +9,7 @@ import {
 import type { MatchingEngineOutput } from "./tools/matchingEngine.js";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-const MODEL = "llama-3.1-8b-instant";
+const MODEL = "openai/gpt-oss-120b";
 
 interface OpeningData {
   minExp: number;
@@ -265,12 +265,18 @@ Do NOT include any text outside the JSON.`;
       model: MODEL,
       temperature: 0.2,
       max_tokens: 200,
-      response_format: { type: "json_object" },
     });
 
-    const parsed = JSON.parse(response.choices[0]?.message?.content || "{}");
-    const tokens = response.usage?.total_tokens || 0;
-    return { reason: parsed.reason || "Matches criteria.", tokens };
+    let rawContent = response.choices[0]?.message?.content || "{}";
+    rawContent = rawContent.replace(/```json/gi, "").replace(/```/g, "").trim();
+    try {
+      const parsed = JSON.parse(rawContent);
+      const tokens = response.usage?.total_tokens || 0;
+      return { reason: parsed.reason || "Matches criteria.", tokens };
+    } catch (parseError: any) {
+      logger.error("JSON Parse Error in Reasoning", { rawContent, error: parseError.message });
+      throw parseError;
+    }
   } catch (error: any) {
     logger.error("Phase 3 Reasoning Error", { error: error.message });
     return { reason: "Automated scoring applied without detailed reasoning due to processing error.", tokens: 0 };
