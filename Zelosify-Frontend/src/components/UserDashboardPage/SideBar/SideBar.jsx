@@ -263,8 +263,8 @@ const Sidebar = memo(({ isOpen, toggleSidebar }) => {
         <aside
           ref={sidebarRef}
           className={`${
-            isOpen ? "w-[12rem]" : "w-[5rem]"
-          } fixed inset-y-0 left-0 z-40 bg-background border-r border-border flex flex-col h-screen`}
+            isOpen ? "w-[16rem] translate-x-0" : "w-[5rem] -translate-x-full lg:translate-x-0"
+          } fixed inset-y-0 left-0 z-40 bg-background border-r border-border flex flex-col h-screen transition-all duration-300 shadow-xl lg:shadow-none`}
         >
           <SidebarHeader isOpen={isOpen} toggleSidebar={toggleSidebar} />
 

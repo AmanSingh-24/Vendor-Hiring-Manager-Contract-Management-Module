@@ -111,9 +111,9 @@ export default function RegisterPage() {
       <main className="flex-1 max-w-[1400px] mx-auto w-full flex flex-col lg:flex-row z-10 mt-8 mb-16">
         
         {/* Left Side - Copy & Value Prop */}
-        <div className="flex-1 p-8 lg:p-12 xl:p-16 flex flex-col justify-center">
+        <div className="flex-1 p-4 md:p-8 lg:p-12 xl:p-16 flex flex-col justify-center">
           <div className="max-w-xl">
-            <h1 className="text-[44px] md:text-[52px] font-bold tracking-tight leading-[1.05] mb-6 text-zinc-900 dark:text-white">
+            <h1 className="text-[36px] md:text-[44px] lg:text-[52px] font-bold tracking-tight leading-[1.05] mb-6 text-zinc-900 dark:text-white">
               Create your secure workspace.
             </h1>
             <p className="text-[17px] text-zinc-600 dark:text-zinc-400 mb-12 leading-relaxed">
@@ -135,8 +135,8 @@ export default function RegisterPage() {
         </div>
 
         {/* Right Side - Form */}
-        <div className="flex-1 p-8 lg:p-12 xl:p-16 flex items-center justify-center">
-          <div className="w-full max-w-lg bg-zinc-50 dark:bg-[#111111] border border-zinc-200 dark:border-white/5 shadow-sm dark:shadow-none rounded-[24px] p-8">
+        <div className="flex-1 p-4 md:p-8 lg:p-12 xl:p-16 flex items-center justify-center">
+          <div className="w-full max-w-lg bg-zinc-50 dark:bg-[#111111] border border-zinc-200 dark:border-white/5 shadow-sm dark:shadow-none rounded-[24px] p-6 md:p-8">
             
             <h2 className="text-2xl font-bold tracking-tight mb-2 text-zinc-900 dark:text-white">
               Get Started

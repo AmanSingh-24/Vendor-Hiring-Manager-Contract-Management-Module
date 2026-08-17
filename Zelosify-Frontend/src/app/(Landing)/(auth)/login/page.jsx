@@ -114,9 +114,9 @@ export default function LoginPage() {
             </button>
           )}
 
-          <button className="px-4 py-2 bg-zinc-900 dark:bg-white text-white dark:text-black text-sm font-medium rounded-md hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors">
+          <Link href="/register" className="px-4 py-2 bg-zinc-900 dark:bg-white text-white dark:text-black text-sm font-medium rounded-md hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors">
             Get Started
-          </button>
+          </Link>
         </div>
       </header>
 
@@ -124,9 +124,9 @@ export default function LoginPage() {
       <main className="flex-1 max-w-[1400px] mx-auto w-full flex flex-col lg:flex-row z-10 mt-8">
         
         {/* Left Side - Copy & Value Prop */}
-        <div className="flex-1 p-8 lg:p-12 xl:p-16 flex flex-col justify-center">
+        <div className="flex-1 p-4 md:p-8 lg:p-12 xl:p-16 flex flex-col justify-center">
           <div className="max-w-xl">
-            <h1 className="text-[44px] md:text-[52px] font-bold tracking-tight leading-[1.05] mb-6 text-zinc-900 dark:text-white">
+            <h1 className="text-[36px] md:text-[44px] lg:text-[52px] font-bold tracking-tight leading-[1.05] mb-6 text-zinc-900 dark:text-white">
               Securely access your vendor workspace.
             </h1>
             <p className="text-[17px] text-zinc-600 dark:text-zinc-400 mb-12 leading-relaxed">
@@ -148,8 +148,8 @@ export default function LoginPage() {
         </div>
 
         {/* Right Side - Form (Real Login) */}
-        <div className="flex-1 p-8 lg:p-12 xl:p-16 flex items-center justify-center">
-          <div className="w-full max-w-md bg-zinc-50 dark:bg-[#111111] border border-zinc-200 dark:border-white/5 shadow-sm dark:shadow-none rounded-[24px] p-8">
+        <div className="flex-1 p-4 md:p-8 lg:p-12 xl:p-16 flex items-center justify-center">
+          <div className="w-full max-w-md bg-zinc-50 dark:bg-[#111111] border border-zinc-200 dark:border-white/5 shadow-sm dark:shadow-none rounded-[24px] p-6 md:p-8">
             
             <h2 className="text-2xl font-bold tracking-tight mb-2 text-zinc-900 dark:text-white">
               {step === 1 ? "Welcome back" : "Two-Factor Authentication"}

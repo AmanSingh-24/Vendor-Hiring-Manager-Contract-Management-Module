@@ -3,28 +3,35 @@ import React, { useState, useEffect } from "react";
 import api from "@/services/api";
 import { Briefcase, MapPin, Calendar, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
+import EmptyState from "@/components/UI/EmptyState";
+import ErrorState from "@/components/UI/ErrorState";
 
 export default function HiringManagerOpeningsList() {
   const [openings, setOpenings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(false);
   const router = useRouter();
 
+  const fetchOpenings = async () => {
+    setIsLoading(true);
+    setError(false);
+    try {
+      const response = await api.get("/hiring-manager/openings");
+      setOpenings(response.data.data || []);
+    } catch (error) {
+      console.error("Failed to load openings", error);
+      setError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchOpenings = async () => {
-      try {
-        const response = await api.get("/hiring-manager/openings");
-        setOpenings(response.data.data || []);
-      } catch (error) {
-        console.error("Failed to load openings", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchOpenings();
   }, []);
 
   return (
-    <div className="flex-1 p-8 overflow-y-auto">
+    <div className="flex-1 p-4 md:p-8 overflow-y-auto overflow-x-hidden">
       <div className="max-w-6xl mx-auto">
         
         {/* Header */}
@@ -35,8 +42,10 @@ export default function HiringManagerOpeningsList() {
           </div>
         </div>
 
-        {/* Bento Box List */}
-        {isLoading ? (
+        {/* Content Area */}
+        {error ? (
+          <ErrorState onRetry={fetchOpenings} />
+        ) : isLoading ? (
           <div className="grid gap-4">
             {[1, 2, 3].map((i) => (
               <div 
@@ -64,6 +73,8 @@ export default function HiringManagerOpeningsList() {
               </div>
             ))}
           </div>
+        ) : openings.length === 0 ? (
+          <EmptyState title="No Requisitions Found" message="You do not have any active job requisitions assigned to you." />
         ) : (
           <div className="grid gap-4">
             {openings.map((opening) => (
@@ -86,14 +97,14 @@ export default function HiringManagerOpeningsList() {
                     </span>
                   </div>
                   
-                  <div className="flex items-center gap-6 mt-4">
+                  <div className="flex flex-wrap items-center gap-4 mt-4">
                     <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-                      <MapPin className="w-4 h-4" />
-                      {opening.location}
+                      <MapPin className="w-4 h-4 shrink-0" />
+                      <span className="truncate">{opening.location}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-                      <Calendar className="w-4 h-4" />
-                      Posted: {opening.postedDate}
+                      <Calendar className="w-4 h-4 shrink-0" />
+                      <span className="truncate">Posted: {opening.postedDate}</span>
                     </div>
                   </div>
                 </div>

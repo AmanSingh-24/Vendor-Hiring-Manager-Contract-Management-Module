@@ -8,6 +8,9 @@ const axiosInstance = axios.create({
   withCredentials: true,
 });
 
+// Global flag to prevent multiple 401 handlers from racing
+let isSessionExpiredRedirecting = false;
+
 // Add request interceptor for logging
 axiosInstance.interceptors.request.use(
   (config) => {
@@ -30,7 +33,7 @@ axiosInstance.interceptors.response.use(
     );
     return response;
   },
-  (error) => {
+  async (error) => {
     if (error.response) {
       console.error(
         `API Error [${
@@ -40,15 +43,13 @@ axiosInstance.interceptors.response.use(
       );
       
       // Global 401 handler for expired tokens
-      if (error.response.status === 401) {
-        // Prevent redirect loops if already on the login page
+      if (error.response.status === 401 && !isSessionExpiredRedirecting) {
         if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
-          // Clear any local storage/state and cookies so the role vanishes
-          clearAuthData();
+          isSessionExpiredRedirecting = true;
           toast.error("Session Expired, Login Again");
-          setTimeout(() => {
-            window.location.href = "/login";
-          }, 1000);
+          // AWAIT cookie clearing before redirecting
+          await clearAuthData();
+          window.location.href = "/login";
         }
       }
     } else {
@@ -58,4 +59,8 @@ axiosInstance.interceptors.response.use(
   }
 );
 
+// Export the flag so api.js can check it too
+export { isSessionExpiredRedirecting };
 export default axiosInstance;
+
+

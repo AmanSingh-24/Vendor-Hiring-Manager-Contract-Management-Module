@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { extractRoleFromToken } from "@/utils/Auth/middlewareUtils";
+import { extractRoleFromToken, decodeJwt } from "@/utils/Auth/middlewareUtils";
 
 export function middleware(request) {
   // Get the pathname of the request
@@ -16,6 +16,27 @@ export function middleware(request) {
   const accessToken = request.cookies.get("access_token")?.value;
   const refreshToken = request.cookies.get("refresh_token")?.value;
   const registrationToken = request.cookies.get("registration_token")?.value;
+
+  // ─── TOKEN EXPIRY CHECK ───────────────────────────────────────────────
+  // If the access_token cookie exists, decode it and check `exp`.
+  // If expired, clear all auth cookies and redirect to /login.
+  // This is the SAFETY NET that prevents the infinite redirect loop.
+  if (accessToken) {
+    const decoded = decodeJwt(accessToken);
+    if (decoded && decoded.exp) {
+      const nowInSeconds = Math.floor(Date.now() / 1000);
+      if (decoded.exp < nowInSeconds) {
+        // Token is expired — nuke all cookies and go to login
+        const loginUrl = new URL("/login", request.url);
+        const response = NextResponse.redirect(loginUrl);
+        response.cookies.delete("access_token");
+        response.cookies.delete("refresh_token");
+        response.cookies.delete("role");
+        return response;
+      }
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────
 
   // A user is considered authenticated if they have BOTH tokens
   const isAuthenticated = !!accessToken && !!refreshToken;
@@ -111,3 +132,4 @@ export const config = {
     "/setup-totp",
   ],
 };
+

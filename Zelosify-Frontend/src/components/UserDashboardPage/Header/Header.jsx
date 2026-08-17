@@ -1,11 +1,11 @@
 "use client";
 import { memo, useEffect, useState, useRef } from "react";
-import { Moon, Search, Sun } from "lucide-react";
+import { Moon, Search, Sun, Menu } from "lucide-react";
 import UserProfile from "./UserProfile";
 import Notification from "./Notification";
 import { useTheme } from "next-themes";
 
-const Header = memo(({ isSidebarOpen }) => {
+const Header = memo(({ isSidebarOpen, toggleSidebar }) => {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [showNotifications, setShowNotifications] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -53,15 +53,23 @@ const Header = memo(({ isSidebarOpen }) => {
   return (
     <header
       className={`${
-        isSidebarOpen ? "pl-[12rem]" : "pl-[5rem]"
-      } h-16 flex items-center justify-between sticky top-0 z-40 bg-background border-b border-border`}
+        isSidebarOpen ? "lg:pl-[16rem]" : "lg:pl-[5rem]"
+      } pl-0 h-16 flex items-center justify-between sticky top-0 z-30 bg-background border-b border-border transition-all duration-300`}
     >
-      <div className="flex items-center justify-between px-6 w-full">
+      <div className="flex items-center justify-between px-4 lg:px-6 w-full">
         
-        {/* Left Side: Custom Logo */}
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.href = "/"}>
-          <img src="/assets/logos/zelosify_Dark.png" alt="Zelosify Light Logo" className="h-6 w-auto block dark:hidden" />
-          <img src="/assets/logos/main-logo.png" alt="Zelosify Dark Logo" className="h-6 w-auto hidden dark:block" />
+        {/* Left Side: Mobile Menu Button & Custom Logo */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={toggleSidebar}
+            className="lg:hidden p-2 -ml-2 rounded-md text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.href = "/"}>
+            <img src="/assets/logos/zelosify_Dark.png" alt="Zelosify Light Logo" className="h-6 w-auto block dark:hidden" />
+            <img src="/assets/logos/main-logo.png" alt="Zelosify Dark Logo" className="h-6 w-auto hidden dark:block" />
+          </div>
         </div>
 
         {/* <div className="flex items-center gap-4 flex-1">

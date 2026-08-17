@@ -78,7 +78,7 @@ export default function SetupTotpPage() {
       {/* Main Content Area */}
       <main className="flex-1 max-w-[1400px] mx-auto w-full flex flex-col items-center justify-center z-10 mt-8 mb-32 px-4">
         
-        <div className="w-full max-w-xl bg-zinc-50 dark:bg-[#111111] border border-zinc-200 dark:border-white/5 shadow-sm dark:shadow-none rounded-[24px] p-8 md:p-12 text-center relative overflow-hidden">
+        <div className="w-full max-w-xl bg-zinc-50 dark:bg-[#111111] border border-zinc-200 dark:border-white/5 shadow-sm dark:shadow-none rounded-[24px] p-6 md:p-12 text-center relative overflow-hidden">
           
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
 

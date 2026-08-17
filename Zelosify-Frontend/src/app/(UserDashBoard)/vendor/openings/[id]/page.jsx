@@ -3,7 +3,9 @@ import React, { useState, useEffect, useCallback } from "react";
 import api from "@/services/api";
 import { useParams, useRouter } from "next/navigation";
 import { useDropzone } from "react-dropzone";
-import { ArrowLeft, UploadCloud, FileText, Trash2, CheckCircle2, Loader2 } from "lucide-react";
+import { ArrowLeft, UploadCloud, FileText, Trash2, CheckCircle2, Loader2, Users } from "lucide-react";
+import EmptyState from "@/components/UI/EmptyState";
+import ErrorState from "@/components/UI/ErrorState";
 
 export default function OpeningDetail() {
   const params = useParams();
@@ -14,29 +16,34 @@ export default function OpeningDetail() {
   const [profiles, setProfiles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState(false);
+
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    setError(false);
+    try {
+      const response = await api.get(`/vendor/openings/${openingId}`);
+      const opData = response.data;
+      setOpening(opData);
+      // Transform the nested hiringProfiles back to the format the UI expects, if needed
+      const profData = opData.hiringProfiles?.map(p => ({
+        id: p.id,
+        fileName: p.s3Key.split('/').pop(),
+        uploadDate: p.submittedAt,
+        status: p.status
+      })) || [];
+      setProfiles(profData);
+    } catch (error) {
+      console.error(error);
+      setError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [openingId]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await api.get(`/vendor/openings/${openingId}`);
-        const opData = response.data;
-        setOpening(opData);
-        // Transform the nested hiringProfiles back to the format the UI expects, if needed
-        const profData = opData.hiringProfiles?.map(p => ({
-          id: p.id,
-          fileName: p.s3Key.split('/').pop(),
-          uploadDate: p.submittedAt,
-          status: p.status
-        })) || [];
-        setProfiles(profData);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchData();
-  }, [openingId]);
+  }, [fetchData]);
 
   const onDrop = useCallback(async (acceptedFiles) => {
     if (acceptedFiles.length === 0) return;
@@ -98,7 +105,7 @@ export default function OpeningDetail() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 p-8 overflow-y-auto">
+      <div className="flex-1 p-4 md:p-8 overflow-y-auto overflow-x-hidden">
         <div className="max-w-5xl mx-auto space-y-8 animate-pulse">
           <div className="w-32 h-4 bg-zinc-200 dark:bg-zinc-800 rounded"></div>
           
@@ -127,10 +134,40 @@ export default function OpeningDetail() {
     );
   }
 
-  if (!opening) return <div className="p-8 text-zinc-900 dark:text-white">Opening not found</div>;
+  if (error) {
+    return (
+      <div className="flex-1 p-4 md:p-8 overflow-y-auto overflow-x-hidden">
+        <div className="max-w-5xl mx-auto">
+          <button 
+            onClick={() => router.push("/vendor/openings")}
+            className="flex items-center gap-2 mb-8 text-sm text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back to Openings
+          </button>
+          <ErrorState onRetry={fetchData} />
+        </div>
+      </div>
+    );
+  }
+
+  if (!opening) {
+    return (
+      <div className="flex-1 p-4 md:p-8 overflow-y-auto overflow-x-hidden">
+        <div className="max-w-5xl mx-auto">
+          <button 
+            onClick={() => router.push("/vendor/openings")}
+            className="flex items-center gap-2 mb-8 text-sm text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back to Openings
+          </button>
+          <EmptyState title="Opening Not Found" message="The opening you are looking for does not exist or you do not have permission to view it." />
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex-1 p-8 overflow-y-auto">
+    <div className="flex-1 p-4 md:p-8 overflow-y-auto overflow-x-hidden">
       <div className="max-w-5xl mx-auto space-y-8">
         
         {/* Back Button */}
@@ -152,9 +189,9 @@ export default function OpeningDetail() {
           <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed mb-6 max-w-3xl">
             {opening.description}
           </p>
-          <div className="flex gap-6 text-sm text-zinc-500">
-            <span>Location: <strong className="text-zinc-900 dark:text-zinc-300">{opening.location}</strong></span>
-            <span>Manager: <strong className="text-zinc-900 dark:text-zinc-300">{opening.hiringManager}</strong></span>
+          <div className="flex flex-wrap gap-4 text-sm text-zinc-500">
+            <span className="truncate">Location: <strong className="text-zinc-900 dark:text-zinc-300">{opening.location}</strong></span>
+            <span className="truncate">Manager: <strong className="text-zinc-900 dark:text-zinc-300">{opening.hiringManager}</strong></span>
           </div>
         </div>
 
@@ -195,9 +232,7 @@ export default function OpeningDetail() {
           <h2 className="text-xl font-semibold text-zinc-900 dark:text-white mt-10">Submitted Profiles</h2>
           
           {profiles.length === 0 ? (
-            <div className="p-8 text-center rounded-[24px] border border-zinc-200 dark:border-white/5 bg-white dark:bg-[#0a0a0a] shadow-sm dark:shadow-none">
-              <p className="text-zinc-500">No candidates submitted yet.</p>
-            </div>
+            <EmptyState icon={Users} title="No candidates submitted" message="You haven't uploaded any candidate profiles for this opening yet." />
           ) : (
             <div className="grid gap-3">
               {profiles.map(profile => (

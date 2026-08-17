@@ -1,91 +1,111 @@
-# Zelosify-Backend
+# Zelosify Recruit — Backend API & AI Engine
 
-## Getting started
+![Node.js](https://img.shields.io/badge/Node.js-22.x-339933?style=flat&logo=nodedotjs&logoColor=white)
+![Express](https://img.shields.io/badge/Express-4.x-000000?style=flat&logo=express&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat&logo=typescript&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat&logo=prisma&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?style=flat&logo=postgresql&logoColor=white)
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+This repository contains the Node.js / Express backend for **Zelosify Recruit**. It acts as the central hub for our multi-tenant SaaS, managing database operations via Prisma, enforcing Role-Based Access Control (RBAC) via Keycloak, and orchestrating the autonomous AI recommendation engine.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+---
 
-## Add your files
+## Architecture Overview
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+1. **Service Layer Pattern**: All business logic is strictly decoupled from Express controllers.
+2. **Multi-Tenant Isolation**: Prisma extensions/middlewares ensure that every database query automatically scopes to the authenticated user's `tenantId`.
+3. **Agentic Pipeline (AI)**: We use **Groq (Llama 3.1)** in a highly constrained tool-calling loop. Unlike brittle "LLM Wrappers", our engine relies on a deterministic TypeScript algorithm (Tool B) to calculate candidate scores, completely preventing AI hallucination.
+4. **Stateless Auth**: Authentication relies exclusively on Keycloak-issued JWTs, transmitted via secure HTTP-Only cookies. 
+5. **Direct-to-S3 Uploads**: We utilize Pre-signed URLs for resume uploads. The backend never buffers heavy PDF/PPTX files in memory, preventing Node.js event-loop blocking.
+6. **Frontend Integration**: The backend seamlessly supports a fully responsive Next.js frontend (Desktop/Tablet/Mobile) by providing robust error handling states and empty data representations through structured JSON responses and appropriate HTTP status codes.
 
+---
+
+## Getting Started
+
+### Prerequisites
+- **Node.js**: v22+
+- **Docker**: For running local Keycloak and PostgreSQL containers.
+
+### 1. Start Infrastructure Services
+The backend relies on PostgreSQL and Keycloak running locally via Docker Compose.
+
+```bash
+cd Server
+docker compose up -d
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/zelosify1/zelosify-backend.git
-git branch -M main
-git push -uf origin main
+> Wait until both containers are fully healthy before proceeding. You can verify Keycloak at `http://localhost:8080/auth`.
+
+### 2. Install Dependencies
+```bash
+cd Server
+npm install
 ```
 
-## Integrate with your tools
+### 3. Environment Variables
+Copy the `.env.example` file to `.env`:
+```bash
+cp .env.example .env
+```
+Ensure your `.env` contains valid credentials for:
+- Database Connection (`DATABASE_URL`)
+- Keycloak Realm settings
+- AWS S3 Keys (`S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`)
+- Groq API Key
 
-- [ ] [Set up project integrations](https://gitlab.com/zelosify/zelosify-backend/-/settings/integrations)
+### 4. Database Setup (Prisma)
+Run the Prisma migrations to set up your PostgreSQL schema:
+```bash
+npx prisma migrate dev
+npx prisma generate
+```
 
-## Collaborate with your team
+### 5. Start Development Server
+```bash
+npm run dev
+```
+The server will start on `http://localhost:5000`.
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+---
 
-## Test and Deploy
+## The AI Recommendation Engine
 
-Use the built-in continuous integration in GitLab.
+The AI recommendation engine is located in `src/services/ai/`. It follows a strict 3-phase execution:
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+1. **`resumeParsingTool.ts`**: Natively parses uploaded PDF/PPTX buffers directly from S3 without relying on third-party API parsers.
+2. **`matchingEngine.ts`**: The core deterministic engine. It executes a mathematical overlap algorithm against the extracted arrays and the required skills, completely bypassing the LLM for the actual scoring.
+3. **`scoringEngineTool.ts`**: The orchestrator parses the deterministic score and uses the LLM solely to synthesize a human-readable rationale.
 
-***
+**To run the dedicated AI tests:**
+```bash
+npm test
+```
 
-# Editing this README
+---
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+## Security & Auth (Keycloak)
 
-## Suggestions for a good README
+All secured routes must pass through our authentication middlewares located in `src/middlewares/auth/`:
+- `authenticateUser`: Validates the JWT Bearer token extracted from the HTTP-Only cookie.
+- `authorizeRole(['ROLE_NAME'])`: Asserts the authenticated user has the necessary Keycloak roles (e.g., `HIRING_MANAGER`, `IT_VENDOR`).
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+For initial registration, the system initiates a custom TOTP handshake using `otplib` before granting permanent credentials.
 
-## Name
-Choose a self-explaining name for your project.
+---
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+## 📁 Key Directories
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+```text
+Zelosify-Backend/Server/
+├── prisma/               # Database schema and migrations
+├── src/
+│   ├── controllers/      # Express route handlers
+│   ├── middlewares/      # Security, Auth, and Error handling
+│   ├── routers/          # Express route definitions
+│   ├── services/
+│   │   ├── ai/           # Groq Orchestrator, Tools, Deterministic Engine
+│   │   ├── hiring/       # Hiring manager business logic
+│   │   └── vendor/       # Vendor business logic
+│   └── index.ts          # Entry point
+└── tests/                # Vitest testing suite
+```

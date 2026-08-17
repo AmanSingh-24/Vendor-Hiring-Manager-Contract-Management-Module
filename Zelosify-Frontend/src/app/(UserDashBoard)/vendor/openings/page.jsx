@@ -3,28 +3,35 @@ import React, { useState, useEffect } from "react";
 import api from "@/services/api";
 import { Briefcase, MapPin, Calendar, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
+import EmptyState from "@/components/UI/EmptyState";
+import ErrorState from "@/components/UI/ErrorState";
 
 export default function VendorOpeningsList() {
   const [openings, setOpenings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(false);
   const router = useRouter();
 
+  const fetchOpenings = async () => {
+    setIsLoading(true);
+    setError(false);
+    try {
+      const response = await api.get("/vendor/openings");
+      setOpenings(response.data.data || []);
+    } catch (error) {
+      console.error("Failed to load openings", error);
+      setError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchOpenings = async () => {
-      try {
-        const response = await api.get("/vendor/openings");
-        setOpenings(response.data.data || []);
-      } catch (error) {
-        console.error("Failed to load openings", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchOpenings();
   }, []);
 
   return (
-    <div className="flex-1 p-8 overflow-y-auto">
+    <div className="flex-1 p-4 md:p-8 overflow-y-auto overflow-x-hidden">
       <div className="max-w-6xl mx-auto">
         
         {/* Header */}
@@ -35,8 +42,10 @@ export default function VendorOpeningsList() {
           </div>
         </div>
 
-        {/* Bento Box List */}
-        {isLoading ? (
+        {/* Content Area */}
+        {error ? (
+          <ErrorState onRetry={fetchOpenings} />
+        ) : isLoading ? (
           <div className="grid gap-4">
             {[1, 2, 3].map((i) => (
               <div 
@@ -64,6 +73,8 @@ export default function VendorOpeningsList() {
               </div>
             ))}
           </div>
+        ) : openings.length === 0 ? (
+          <EmptyState title="No Openings Found" message="There are currently no active job openings available." />
         ) : (
           <div className="grid gap-4">
             {openings.map((opening) => (
@@ -86,18 +97,18 @@ export default function VendorOpeningsList() {
                     </span>
                   </div>
                   
-                  <div className="flex items-center gap-6 mt-4">
+                  <div className="flex flex-wrap items-center gap-4 mt-4">
                     <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-                      <MapPin className="w-4 h-4" />
-                      {opening.location}
+                      <MapPin className="w-4 h-4 shrink-0" />
+                      <span className="truncate">{opening.location}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-                      <Calendar className="w-4 h-4" />
-                      Posted: {opening.postedDate}
+                      <Calendar className="w-4 h-4 shrink-0" />
+                      <span className="truncate">Posted: {opening.postedDate}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-                      <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                      {opening.contractType}
+                      <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
+                      <span className="truncate">{opening.contractType}</span>
                     </div>
                   </div>
                 </div>

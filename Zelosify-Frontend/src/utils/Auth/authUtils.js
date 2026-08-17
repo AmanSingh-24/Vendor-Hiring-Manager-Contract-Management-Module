@@ -48,16 +48,31 @@ export const handleRoleBasedRedirect = (role) => {
 };
 
 /**
- * Clear all authentication data (cookies and localStorage)
+ * Clear all authentication data (cookies and localStorage).
+ * 
+ * Uses our own Next.js API route (/api/auth/clear-session) to clear
+ * HTTP-Only cookies. This avoids the circular dependency where the
+ * backend's /auth/logout requires a valid (non-expired) token.
+ * 
+ * Returns a Promise so callers can await before redirecting.
  */
-export const clearAuthData = () => {
-  // Clear cookies
-  document.cookie =
-    "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-  document.cookie =
-    "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+export const clearAuthData = async () => {
+  // 1. Clear the role cookie from JS (this one is accessible)
   document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
-  // Clear localStorage
+  // 2. Clear localStorage
   localStorage.removeItem("zelosify_user");
+
+  // 3. Call our Next.js API route to clear HTTP-Only cookies server-side
+  //    This runs on the SAME origin, so it can clear cookies without auth.
+  try {
+    await fetch("/api/auth/clear-session", {
+      method: "POST",
+      credentials: "include",
+    });
+  } catch (e) {
+    // If this fails, we still redirect — cookies will be stale but
+    // the middleware will see them as expired JWT and redirect to login anyway.
+    console.error("Failed to clear session cookies:", e);
+  }
 };

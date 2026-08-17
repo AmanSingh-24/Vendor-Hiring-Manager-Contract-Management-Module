@@ -27,9 +27,7 @@ A full-stack, multi-tenant recruitment platform that streamlines vendor candidat
 6. [Usage](#usage)
 7. [API Integration](#api-integration)
 8. [Folder Structure](#folder-structure)
-9. [Contributing](#contributing)
-10. [License](#license)
-11. [Author / Contact](#author--contact)
+11. [Contact](#author--contact)
 
 ---
 
@@ -69,6 +67,10 @@ Furthermore, implementing AI into recruitment often results in fragile "LLM Wrap
 - One-click shortlist or reject actions with full audit timestamps.
 - Native resume viewer utilizing pre-signed S3 URLs.
 
+### UI & User Experience
+- **Fully Responsive Design**: The entire application is natively optimized for Desktop, Tablet, and Mobile screens. Features fluid typography, a responsive mobile drawer sidebar, and horizontally scrollable data tables.
+- **Empty & Error States**: Comprehensive UI handling of edge cases with contextual empty states for empty lists/dashboards, and robust error states with graceful retry capabilities across all API-dependent pages.
+
 ### Security & Identity
 - **Keycloak** OpenID Connect SSO with session management.
 - JWT verification and refresh token rotation.
@@ -102,7 +104,9 @@ Furthermore, implementing AI into recruitment often results in fragile "LLM Wrap
 ## System Architecture / Workflow
 
 ### AI Recommendation Engine Architecture
-![AI Recommendation Architecture](./Zelosify-Frontend/public/assets/images/architecture.png)
+<p align="center">
+  <img src="./Zelosify-Frontend/public/assets/images/architecture.png" width="700" alt="AI Recommendation Architecture" />
+</p>
 
 ### Secure User Onboarding & Auth Flow
 
@@ -115,14 +119,21 @@ sequenceDiagram
     participant Keycloak
     
     User->>Frontend: Register Details
+    
     Frontend->>Backend: POST /register
+    
     Backend->>Keycloak: Create User & Fetch JWTs
+    
     Backend-->>Frontend: Set Temp Cookies & Return QR Code
+    
     User->>Frontend: Scan QR & Enter 6-digit TOTP
+    
     Frontend->>Backend: POST /verify-totp
+    
     Backend-->>Frontend: Success! Clear Temp Cookie
-    Frontend->>User: Route to Dashboard
 ```
+
+<br />
 
 #### 2. Login Flow
 ```mermaid
@@ -133,12 +144,16 @@ sequenceDiagram
     participant Keycloak
     
     User->>Frontend: Login (Email, Pass, TOTP)
+    
     Frontend->>Backend: POST /login
+    
     Backend->>Backend: 1. Verify TOTP mathematically
+    
     Backend->>Keycloak: 2. Authenticate Password
+    
     Keycloak-->>Backend: Secure JWTs
+    
     Backend-->>Frontend: 3. Set HTTP-Only Cookies (access, refresh, role)
-    Frontend->>User: Route to Dashboard
 ```
 
 ### End-to-end hiring workflow:

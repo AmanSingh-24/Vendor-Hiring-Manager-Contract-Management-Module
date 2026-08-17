@@ -82,12 +82,12 @@ export default function LandingPage() {
 
         {/* Massive Headline */}
         <h1 className="text-5xl md:text-7xl lg:text-[80px] font-bold tracking-normal leading-[1.05] max-w-7xl mb-6 text-zinc-900 dark:text-white">
-          The operating system for every<br />vendor you pay.
+          The operating system for every<br className="hidden md:block" />vendor you pay.
         </h1>
 
         {/* Subheadline */}
         <p className="text-lg md:text-xl text-zinc-600 dark:text-zinc-100 max-w-3xl mb-10 leading-relaxed">
-          Unify contracts, obligations, timesheets, renewals, and invoices in one platform. so.<br />what you pay always matches what you signed.
+          Unify contracts, obligations, timesheets, renewals, and invoices in one platform. so.<br className="hidden md:block" />what you pay always matches what you signed.
         </p>
 
         {/* CTA Buttons */}
