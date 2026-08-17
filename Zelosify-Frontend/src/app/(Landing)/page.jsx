@@ -74,7 +74,7 @@ export default function LandingPage() {
         
         {/* Subtle pill badge */}
         <div className="flex items-center gap-2 px-4 py-1.5 mb-8 rounded-full border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#151515] text-xs font-medium text-zinc-600 dark:text-zinc-400 cursor-pointer hover:bg-zinc-100 dark:hover:bg-[#111111] transition-colors">
-          <span>For teams managing 25â€“500+ vendors</span>
+          <span>For teams managing 25-500+ vendors</span>
           <div className="w-5 h-5 rounded-full bg-zinc-200 dark:bg-[#1a1a1a] flex items-center justify-center">
             <ArrowRight className="w-3 h-3 text-zinc-900 dark:text-white" />
           </div>

@@ -461,3 +461,8 @@ Vendor-Hiring-Manager-Contract-Management-Module/
 - GitHub: [@AmanSingh-24](https://github.com/AmanSingh-24)
 
 *Built as a production-oriented prototype demonstrating full-stack engineering, AI-augmented workflows, multi-tenant SaaS architecture, and enterprise-grade identity management.*
+
+## Video Demo
+
+[Watch the Video Demo](https://drive.google.com/file/d/1og-I4CwV8FZ8OKXo1L-CXwZ9ixEn0KXY/view?usp=sharing)
+
