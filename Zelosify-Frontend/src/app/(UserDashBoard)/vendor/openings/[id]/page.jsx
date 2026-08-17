@@ -191,7 +191,7 @@ export default function OpeningDetail() {
           </p>
           <div className="flex flex-wrap gap-4 text-sm text-zinc-500">
             <span className="truncate">Location: <strong className="text-zinc-900 dark:text-zinc-300">{opening.location}</strong></span>
-            <span className="truncate">Manager: <strong className="text-zinc-900 dark:text-zinc-300">{opening.hiringManager}</strong></span>
+            <span className="truncate">Manager: <strong className="text-zinc-900 dark:text-zinc-300">{opening.hiringManagerName}</strong></span>
           </div>
         </div>
 

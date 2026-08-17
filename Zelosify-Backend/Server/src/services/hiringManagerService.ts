@@ -23,24 +23,32 @@ export const getHMProfilesService = async (tenantId: string, hiringManagerId: st
     orderBy: { submittedAt: 'desc' },
   });
 
-  // Manual join: fetch vendor names for all uploaders
   const uploaderIds = [...new Set(profiles.map(p => p.uploadedBy))];
   const uploaders = await prisma.user.findMany({
     where: { id: { in: uploaderIds } },
-    select: { id: true, firstName: true, lastName: true },
+    select: { id: true, firstName: true, lastName: true, tenantId: true },
   });
+  
+  const tenantIds = [...new Set(uploaders.map(u => u.tenantId).filter(Boolean) as string[])];
+  const tenants = await prisma.tenants.findMany({
+    where: { tenantId: { in: tenantIds } },
+    select: { tenantId: true, companyName: true }
+  });
+  
+  const tenantMap = new Map(tenants.map(t => [t.tenantId, t]));
   const uploaderMap = new Map(uploaders.map(u => [u.id, u]));
 
   return {
     opening: { id: opening.id, title: opening.title },
     profiles: profiles.map(p => {
       const uploader = uploaderMap.get(p.uploadedBy);
+      const tenant = uploader?.tenantId ? tenantMap.get(uploader.tenantId) : null;
       return {
         id: p.id,
         s3Key: p.s3Key,
         status: p.status,
         submittedAt: p.submittedAt,
-        uploadedByUser: uploader ? { firstName: uploader.firstName, lastName: uploader.lastName } : null,
+        uploadedByUser: uploader ? { firstName: uploader.firstName, lastName: uploader.lastName, companyName: tenant?.companyName || "Vendor" } : null,
         aiEvaluation: p.recommended !== null ? {
           badge: p.recommended ? "Recommended" : (p.recommendationScore && p.recommendationScore >= 0.5 ? "Borderline" : "Not Recommended"),
           score: p.recommendationScore,

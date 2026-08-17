@@ -4,8 +4,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 
 // Metadata (App Router style)
 export const metadata = {
-  title: "Zelosify",
-  description: "Zelosify",
+  title: "Zelosify | AI-Powered Contract Hiring",
+  description: "Zelosify Multi-Tenant AI-Assisted Contract Hiring Platform",
   icons: {
     icon: "/favicon1.ico",
   },

@@ -19,6 +19,7 @@ export default function SubmissionsEvaluationTable() {
   const [profiles, setProfiles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [confirmAction, setConfirmAction] = useState({ isOpen: false, profileId: null, action: null });
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -31,11 +32,13 @@ export default function SubmissionsEvaluationTable() {
       const mappedProfiles = profData.map(p => ({
         id: p.id,
         fileName: p.s3Key?.split('/').pop() || "Unknown",
-        vendorName: p.uploadedByUser?.firstName ? `${p.uploadedByUser.firstName} ${p.uploadedByUser.lastName}` : "Vendor",
+        vendorName: p.uploadedByUser?.companyName || "Vendor",
         aiScore: p.aiEvaluation ? Math.round(p.aiEvaluation.score * 100) : 0,
         aiBadge: p.aiEvaluation ? p.aiEvaluation.badge : "Pending",
         aiBadgeColor: p.aiEvaluation ? (p.aiEvaluation.badge === "Recommended" ? "emerald" : p.aiEvaluation.badge === "Borderline" ? "yellow" : "red") : "zinc",
         aiSummary: p.aiEvaluation ? p.aiEvaluation.explanation : "AI evaluation pending...",
+        latencyMs: p.aiEvaluation ? p.aiEvaluation.latencyMs : 0,
+        confidence: p.aiEvaluation ? Math.round(p.aiEvaluation.confidence * 100) : 0,
         status: p.status
       }));
 
@@ -55,17 +58,44 @@ export default function SubmissionsEvaluationTable() {
     fetchData();
   }, [fetchData]);
 
-  const handleAction = async (profileId, action) => {
+  const [scrollTop, setScrollTop] = useState(0);
+  const scrollContainerRef = useRef(null);
+  const handleScroll = (e) => {
+    setScrollTop(e.target.scrollTop);
+  };
+
+  const ROW_HEIGHT = 100; // Estimated row height
+  const WINDOW_HEIGHT = 800; // Match the container maxHeight
+  const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - 3);
+  const endIndex = Math.min(
+    profiles.length - 1,
+    Math.floor((scrollTop + WINDOW_HEIGHT) / ROW_HEIGHT) + 3
+  );
+
+  const visibleProfiles = profiles.slice(startIndex, endIndex + 1);
+  const totalHeight = profiles.length * ROW_HEIGHT;
+  const offsetY = startIndex * ROW_HEIGHT;
+
+  const executeAction = async () => {
+    const { profileId, action } = confirmAction;
+    if (!profileId || !action) return;
     try {
       await api.post(`/hiring-manager/profiles/${profileId}/${action}`);
       // Optimistically update the UI
       setProfiles(prev => prev.map(p => 
         p.id === profileId ? { ...p, status: action === 'shortlist' ? 'SHORTLISTED' : 'REJECTED' } : p
       ));
+      setConfirmAction({ isOpen: false, profileId: null, action: null });
     } catch (error) {
       console.error(`Failed to ${action} profile`, error);
       alert(`Failed to ${action} profile.`);
+      setConfirmAction({ isOpen: false, profileId: null, action: null });
     }
+  };
+
+  const requestAction = (e, profileId, action) => {
+    e.stopPropagation();
+    setConfirmAction({ isOpen: true, profileId, action });
   };
 
   if (isLoading) {
@@ -203,11 +233,17 @@ export default function SubmissionsEvaluationTable() {
                     <div className="col-span-2 text-right pr-2">Action</div>
                 </div>
 
-                {/* Standard Body Container */}
-                <div className="overflow-y-auto custom-scrollbar relative bg-white dark:bg-[#0a0a0a]" style={{ maxHeight: '800px' }}>
-                
-                {/* Visible Rows */}
-                {profiles.map((profile) => (
+                {/* Standard Body Container (Virtualization Added) */}
+                <div 
+                  ref={scrollContainerRef}
+                  onScroll={handleScroll}
+                  className="overflow-y-auto custom-scrollbar relative bg-white dark:bg-[#0a0a0a]" 
+                  style={{ maxHeight: '800px' }}
+                >
+                  <div style={{ height: `${totalHeight}px`, position: 'relative' }}>
+                    <div style={{ transform: `translateY(${offsetY}px)`, position: 'absolute', top: 0, left: 0, right: 0 }}>
+                      {/* Visible Rows */}
+                      {visibleProfiles.map((profile) => (
                     <div 
                       key={profile.id}
                       className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-zinc-100 dark:border-white/5 hover:bg-zinc-50 dark:hover:bg-[#151515] transition-colors items-center group cursor-pointer"
@@ -225,7 +261,7 @@ export default function SubmissionsEvaluationTable() {
                     </div>
 
                       {/* AI Score */}
-                      <div className="col-span-1 flex justify-center">
+                      <div className="col-span-1 flex flex-col items-center justify-center">
                         <div className="relative w-12 h-12 flex items-center justify-center">
                           <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 36 36">
                             {/* Background Track */}
@@ -250,21 +286,27 @@ export default function SubmissionsEvaluationTable() {
                             {profile.aiScore}
                           </span>
                         </div>
+                        <div className="mt-1 text-[10px] text-zinc-500 dark:text-white/70 font-mono tracking-wide">
+                          ⏱ {profile.latencyMs}ms
+                        </div>
                       </div>
 
                       {/* Match Badge */}
-                      <div className="col-span-2 flex justify-center">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium border-2 flex items-center gap-1.5 bg-transparent text-black dark:text-white
-                        ${profile.aiBadgeColor === 'emerald' ? 'border-emerald-500' : 
-                          profile.aiBadgeColor === 'blue' ? 'border-blue-500' : 
-                          profile.aiBadgeColor === 'yellow' ? 'border-yellow-500' : 
-                          profile.aiBadgeColor === 'red' ? 'border-red-500' : 
-                          'border-zinc-500'}`}
-                      >
-                        {profile.aiScore > 70 && <CheckCircle2 className="w-3 h-3" />}
-                        {profile.aiBadge}
-                      </span>
-                    </div>
+                      <div className="col-span-2 flex flex-col items-center justify-center">
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium border-2 flex items-center gap-1.5 bg-transparent text-black dark:text-white
+                          ${profile.aiBadgeColor === 'emerald' ? 'border-emerald-500' : 
+                            profile.aiBadgeColor === 'blue' ? 'border-blue-500' : 
+                            profile.aiBadgeColor === 'yellow' ? 'border-yellow-500' : 
+                            profile.aiBadgeColor === 'red' ? 'border-red-500' : 
+                            'border-zinc-500'}`}
+                        >
+                          {profile.aiScore > 70 && <CheckCircle2 className="w-3 h-3" />}
+                          {profile.aiBadge}
+                        </span>
+                        <div className="mt-1 text-[10px] text-zinc-500 dark:text-white/70 font-medium tracking-wide">
+                          CONF: {profile.confidence}%
+                        </div>
+                      </div>
 
                         {/* AI Summary */}
                         <div className="col-span-4 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed pr-4">
@@ -276,7 +318,7 @@ export default function SubmissionsEvaluationTable() {
                           {profile.status === 'SUBMITTED' ? (
                             <>
                               <button 
-                                onClick={(e) => { e.stopPropagation(); handleAction(profile.id, 'shortlist'); }}
+                                onClick={(e) => requestAction(e, profile.id, 'shortlist')}
                                 className="w-full h-8 px-1 rounded-md bg-transparent flex items-center justify-center gap-1 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors border border-emerald-500 text-emerald-700 dark:text-emerald-400"
                                 title="Shortlist"
                               >
@@ -284,7 +326,7 @@ export default function SubmissionsEvaluationTable() {
                                 <span className="text-xs font-semibold truncate">Shortlist</span>
                               </button>
                               <button 
-                                onClick={(e) => { e.stopPropagation(); handleAction(profile.id, 'reject'); }}
+                                onClick={(e) => requestAction(e, profile.id, 'reject')}
                                 className="w-full h-8 px-1 rounded-md bg-transparent flex items-center justify-center gap-1 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors border border-red-500 text-red-700 dark:text-red-400"
                                 title="Reject"
                               >
@@ -301,7 +343,9 @@ export default function SubmissionsEvaluationTable() {
 
                   </div>
                 ))}
-              </div>
+                    </div>
+                  </div>
+                </div>
             
             {/* Footer Info */}
             <div className="p-3 bg-zinc-50 dark:bg-[#111111] border-t border-zinc-200 dark:border-white/10 text-xs text-zinc-500 text-center">
@@ -313,6 +357,35 @@ export default function SubmissionsEvaluationTable() {
         )}
 
       </div>
+
+      {/* Confirmation Modal */}
+      {confirmAction.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-[#111111] border border-zinc-200 dark:border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-xl animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-2">Confirm Action</h3>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6 leading-relaxed">
+              Are you sure you want to <strong>{confirmAction.action}</strong> this candidate? This action cannot be undone and the vendor will be notified.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button 
+                onClick={() => setConfirmAction({ isOpen: false, profileId: null, action: null })}
+                className="px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-300 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={executeAction}
+                className={`px-4 py-2 text-sm font-medium text-white rounded-xl transition-colors ${
+                  confirmAction.action === 'shortlist' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'
+                }`}
+              >
+                Confirm {confirmAction.action === 'shortlist' ? 'Shortlist' : 'Reject'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -196,7 +196,7 @@ export const processResumeWithAgent = async (
       totalTokensUsed,
     };
 
-    logger.info("═══ Agent complete ═══", { s3Key, latency, decision: scoreResult.decision, score: scoreResult.finalScore, totalTokensUsed });
+    logger.info(`🤖 [AI Agent Evaluated] s3Key: ${s3Key.split('/').pop() || s3Key} | ⚙️ Processing Time: ${latency}ms | 📊 Match: ${Math.round(scoreResult.finalScore * 100)}% (${scoreResult.decision}) | ⚡ Tokens: ${totalTokensUsed}`);
     return result;
 
   } catch (error: any) {
